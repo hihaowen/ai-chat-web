@@ -263,7 +263,7 @@
 							complete: () => {
 								setTimeout(function() {
 									uni.navigateTo({
-										url: '/pages/member/index'
+										url: '/pages/sso/member'
 									})
 								}, 1500);
 							},

@@ -1,5 +1,5 @@
 <template>
-	<web-view :src="loginUrl" @message="handleMessage"></web-view>
+	<web-view :src="logoutUrl" @message="handleMessage"></web-view>
 </template>
 
 <script>
@@ -9,12 +9,11 @@
 	} from 'vuex';
 
 	import {
-		checkCodeProcess,
-		saveLoginInfo,
+		clearLoginInfo,
 	} from '../../common/sso.js'
 
 	export default {
-		computed: mapState(['loginUrl']),
+		computed: mapState(['logoutUrl']),
 		data() {
 			return {
 				redirect_url: "",
@@ -48,6 +47,7 @@
 			window.removeEventListener("message", this.onMessage);
 		},
 		methods: {
+			...mapMutations(['logout']),
 			goback() {
 				if (this.redirect_url !== "") {
 					if (this.is_tab) {
@@ -69,25 +69,20 @@
 				if (typeof event.data.data !== 'undefined') {
 					console.log("收到同步信息:", JSON.stringify(event.data.data))
 
+					clearLoginInfo()
+
+					this.logout()
+
 					let info = event.data.data.arg
-					checkCodeProcess(info.code, (result) => {
-						if (result.errno == 200) { // 正常
-							// 设置浏览器登录态
-							saveLoginInfo(result.data);
-							this.login(result.data)
-							console.log(info.domain + ' 已通知登入.')
-							// 返回上一页
-							this.goback()
-						} else { // 错误
-							console.error('同步登入异常: ' + result.error)
-						}
-					});
+					console.log(info.domain + ' 已通知登出.')
+
+					// 返回上一页
+					this.goback()
 				}
 			},
 			handleMessage(event) {
 				console.log("收到同步消息:", event)
 			},
-			...mapMutations(['login']),
 		}
 	}
 </script>

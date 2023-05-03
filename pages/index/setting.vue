@@ -1,25 +1,22 @@
 <template>
 	<view class="uni-container">
-		<view v-if="!hasLeftWin" class="uni-header-logo">
-			<view v-if="!hasLogin">
-				<image class="uni-header-image" src="/static/user.jpg" @click="bindLogin"
-					:style="{'cursor': 'pointer'}"></image>
-				<view>点击头像登录</view>
-			</view>
-			<view v-else>
-				<image class="uni-header-image" src="/static/user.jpg"></image>
-			</view>
+		<view v-if="!hasLogin" class="uni-header-logo">
+			<image class="uni-header-image avatar" src="/static/user.jpg" @click="bindLogin"
+				:style="{'cursor': 'pointer'}">
+			</image>
+			<text class="hello-text">点击头像登录</text>
 		</view>
-		<view v-if="!hasLeftWin" class="uni-panel">
-			<text class="hello-text">免费用户目前只能白嫖GPT-3.5模型,每天有次数限制\n付费用户没有任何限制,而且可以使用目前最强大的Ai模型GPT-4</text>
+		<view v-else class="uni-header-logo">
+			<image class="uni-header-image avatar" src="/static/user.jpg"></image>
+			<text class="hello-text">{{uerInfo.nickname}}</text>
 		</view>
-		<view class="uni-panel">
-			<navigator url="/pages/member/index" hover-class="navigator-hover">
+		<view v-if="hasLogin" class="uni-panel">
+			<navigator url="/pages/sso/member" hover-class="navigator-hover">
 				<button type="primary" v-if="!uerInfo.isMember">开通会员</button>
 				<button type="primary" v-else>续费({{uerInfo.memberExpireAt}})</button>
 			</navigator>
 		</view>
-		<view class="uni-panel">
+		<view v-if="hasLogin" class="uni-panel">
 			<uni-section title="选择模型" type="line">
 				<view class="uni-px-5 uni-pb-5">
 					<uni-data-select v-model="currentSelectedModel" :localdata="modelList" @change="switchModel"
@@ -56,16 +53,14 @@
 
 	import {
 		mapState,
-		mapMutations
 	} from 'vuex';
 
 	import {
-		clearLoginInfo,
 		getAccessToken
 	} from '../../common/sso.js'
 
 	export default {
-		computed: mapState(['hasLogin', 'uerInfo', 'logoutUrl']),
+		computed: mapState(['hasLogin', 'uerInfo']),
 		props: {
 			hasLeftWin: {
 				type: Boolean
@@ -127,7 +122,6 @@
 			}
 		},
 		methods: {
-			...mapMutations(['logout']),
 			async initModel() {
 				const modelSupported = await uni.request({
 					url: chatApi + `/chat_model`,
@@ -212,7 +206,7 @@
 
 										setTimeout(function() {
 											uni.navigateTo({
-												url: '/pages/member/index'
+												url: '/pages/sso/member'
 											})
 										}, 1500)
 									});
@@ -252,11 +246,10 @@
 			},
 			bindLogin() {
 				if (this.hasLogin) {
-					this.logout()
-					clearLoginInfo()
-					// 去SSO退出
-					// TODO 目前先只兼顾H5
-					self.location.href = this.logoutUrl
+					uni.navigateTo({
+						url: '/pages/sso/logout?is_tab=true&redirect_url=/' + encodeURIComponent(this.$mp.page
+							.route)
+					})
 				} else {
 					uni.navigateTo({
 						url: '/pages/sso/login?is_tab=true&redirect_url=/' + encodeURIComponent(this.$mp.page
@@ -299,4 +292,10 @@
 
 <style>
 	@import '../../common/uni-nvue.css';
+
+	.avatar {
+		width: 50px;
+		height: 50px;
+		border-radius: 50%;
+	}
 </style>

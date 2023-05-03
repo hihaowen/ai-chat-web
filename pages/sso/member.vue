@@ -1,5 +1,5 @@
 <template>
-	<web-view :src="loginUrl" @message="handleMessage"></web-view>
+	<web-view :src="ssoServerUrl" @message="handleMessage"></web-view>
 </template>
 
 <script>
@@ -14,7 +14,7 @@
 	} from '../../common/sso.js'
 
 	export default {
-		computed: mapState(['loginUrl']),
+		computed: mapState(['ssoServerUrl']),
 		data() {
 			return {
 				redirect_url: "",

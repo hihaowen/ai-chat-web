@@ -21,7 +21,7 @@
 			      left: '5px',
 			      top: '25px',
 			    }"></uni-icons>
-			<textarea class="input" v-model="message" @keyup.enter.exact="send" :focus="inputFocus" @blur="onblur"
+			<textarea class="input" v-model="message" @keyup.ctrl.enter.exact="send" :focus="inputFocus" @blur="onblur"
 				maxlength="4096" placeholder-style="" placeholder="请输入消息发送" />
 			<uni-icons type="paperplane" size="30" class="send" @click="send" :loading="sending"></uni-icons>
 		</view>
@@ -225,7 +225,7 @@
 							complete: () => {
 								setTimeout(function() {
 									uni.navigateTo({
-										url: '/pages/member/index'
+										url: '/pages/sso/member'
 									})
 								}, 1500);
 							},

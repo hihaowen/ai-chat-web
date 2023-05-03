@@ -1,6 +1,6 @@
 <template>
 	<view>
-		<uni-section title="常用工具" type="line" padding>
+		<uni-section title="常见应用" type="line" padding>
 			<uni-grid :column="3" :highlight="true">
 				<uni-grid-item v-for="(item, index) in list" :index="index" :key="index">
 					<view class="grid-item-box" @click="jumpFormChat(item.id)">

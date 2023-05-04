@@ -28,9 +28,9 @@
 				this.redirect_url = decodeURIComponent(options.redirect_url)
 				console.log("设置了上一页:", this.redirect_url)
 			}
-			if (typeof options.is_tab !== undefined) {
-				this.is_tab = true
-				console.log("上一页是tab")
+			if (typeof options.is_tab !== 'undefined') {
+				this.is_tab = options.is_tab
+				console.log("上一页是tab吗:", this.is_tab)
 			}
 		},
 		onReady() {

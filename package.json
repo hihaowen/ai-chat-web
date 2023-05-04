@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
-  "chatApi": "http://192.168.0.105:8080",
+  "chatApi": "http://localhost:8080",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -29,9 +29,9 @@
 				this.redirect_url = decodeURIComponent(options.redirect_url)
 				console.log("设置了上一页:", this.redirect_url)
 			}
-			if (typeof options.is_tab !== undefined) {
-				this.is_tab = true
-				console.log("上一页是tab")
+			if (typeof options.is_tab !== 'undefined') {
+				this.is_tab = options.is_tab
+				console.log("上一页是tab吗:", this.is_tab)
 			}
 		},
 		onReady() {
@@ -70,18 +70,47 @@
 					console.log("收到同步信息:", JSON.stringify(event.data.data))
 
 					let info = event.data.data.arg
-					checkCodeProcess(info.code, (result) => {
-						if (result.errno == 200) { // 正常
-							// 设置浏览器登录态
-							saveLoginInfo(result.data);
-							this.login(result.data)
-							console.log(info.domain + ' 已通知登入.')
-							// 返回上一页
-							this.goback()
-						} else { // 错误
-							console.error('同步登入异常: ' + result.error)
+
+					// 支付结果回调
+					if (typeof info.action !== 'undefined' && info.action === "pay_result") {
+						let title = '支付失败'
+						let icon = 'error'
+						if (typeof info.result !== 'undefined' && info.result === "success") {
+							title = '支付成功'
+							icon = 'success'
 						}
-					});
+
+						uni.showToast({
+							title: title,
+							icon: icon,
+							complete: () => {
+								this.$nextTick(() => {
+									setTimeout(function() {
+										uni.switchTab({
+											url: '/pages/index/setting'
+										})
+									}, 1500)
+								});
+							},
+						});
+					}
+
+					// 登录成功回调
+					// TODO 临时方案
+					if (typeof info.code !== 'undefined') {
+						checkCodeProcess(info.code, (result) => {
+							if (result.errno == 200) { // 正常
+								// 设置浏览器登录态
+								saveLoginInfo(result.data);
+								this.login(result.data)
+								console.log(info.domain + ' 已通知登入.')
+								// 返回上一页
+								this.goback()
+							} else { // 错误
+								console.error('同步登入异常: ' + result.error)
+							}
+						});
+					}
 				}
 			},
 			handleMessage(event) {

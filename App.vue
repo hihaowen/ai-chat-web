@@ -22,12 +22,11 @@
 			// #endif
 
 			// 更新登录用户信息
-			let redirectUrl = window.location.href;
-			userInfoHandler(redirectUrl,
+			userInfoHandler(window.location.href,
 				(result) => {
 					// console.log(result)
 					// if (result.errno == 200) {
-						this.login(result.data)
+					this.login(result.data)
 					// }
 				})
 		},

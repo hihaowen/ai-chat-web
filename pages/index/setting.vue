@@ -1,5 +1,5 @@
 <template>
-	<view class="uni-container">
+	<view v-if="refresh" class="uni-container">
 		<view v-if="!hasLogin" class="uni-header-logo">
 			<image class="uni-header-image avatar" src="/static/user.jpg" @click="bindLogin"
 				:style="{'cursor': 'pointer'}">
@@ -53,14 +53,18 @@
 
 	import {
 		mapState,
+		mapMutations
 	} from 'vuex';
 
 	import {
-		getAccessToken
+		getAccessToken,
+		userInfoHandler
 	} from '../../common/sso.js'
 
 	export default {
-		computed: mapState(['hasLogin', 'uerInfo']),
+		computed: {
+			...mapState(['hasLogin', 'uerInfo']),
+		},
 		props: {
 			hasLeftWin: {
 				type: Boolean
@@ -71,6 +75,7 @@
 		},
 		data() {
 			return {
+				refresh: true,
 				hideList: [
 					'ucharts',
 					'nav-city-dropdown'
@@ -99,7 +104,15 @@
 				]
 			}
 		},
+		onShow() {
+			console.log("重新加载用户信息")
+			this.reload()
+		},
+		onHide() {
+
+		},
 		onLoad() {
+			// 初始化模型
 			this.initModel()
 		},
 		watch: {
@@ -122,6 +135,20 @@
 			}
 		},
 		methods: {
+			...mapMutations(['login']),
+			reload() {
+				// 更新登录用户信息
+				userInfoHandler(window.location.href,
+					(result) => {
+						this.login(result.data)
+						// 移除组件
+						this.refresh = false
+						// 在组件移除后，重新渲染组件
+						this.$nextTick(function() {
+							this.refresh = true
+						})
+					})
+			},
 			async initModel() {
 				const modelSupported = await uni.request({
 					url: chatApi + `/chat_model`,

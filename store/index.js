@@ -23,8 +23,10 @@ const store = createStore({
 				state.uerInfo.nickname = provider.nickname;
 				state.uerInfo.isMember = provider.is_member;
 				state.uerInfo.memberExpireAt = provider.member_expire_at;
-				// 登录状态
 				state.hasLogin = true;
+			} else {
+				state.uerInfo = {};
+				state.hasLogin = false;
 			}
 			
 			// 系统参数
@@ -37,10 +39,12 @@ const store = createStore({
 			if (typeof provider.sso_server_url != "undefined") {
 				state.ssoServerUrl = provider.sso_server_url
 			}
+			
+			console.log("最新userInfo:", state.uerInfo)
 		},
 		logout(state) {
-			state.hasLogin = false;
 			state.uerInfo = {};
+			state.hasLogin = false;
 		}
 	}
 })

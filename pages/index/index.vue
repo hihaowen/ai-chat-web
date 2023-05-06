@@ -1,6 +1,6 @@
 <template>
 	<view class="home">
-		<uni-list-item title="懒猫AI" note="通过 AI 技术实现的智能对话，帮助您更快捷地解决问题。" thumb="/static/logo.png" thumb-size="lg" />
+		<uni-list-item title="懒猫说" note="通过 AI 技术实现的智能对话，帮助您更快捷地解决问题。" thumb="/static/logo.png" thumb-size="lg" />
 
 		<uni-notice-bar show-get-more show-icon scrollable text="免费用户使用GPT3.5模型已足够出色；付费用户可享用更先进的GPT4模型。" @getmore="buyMember" />
 

@@ -10,19 +10,27 @@
 			<image class="uni-header-image avatar" src="/static/user.jpg"></image>
 			<text class="hello-text">{{uerInfo.nickname}}</text>
 		</view>
-		<view v-if="hasLogin" class="uni-panel">
-			<navigator url="/pages/sso/member" hover-class="navigator-hover">
-				<button type="primary" v-if="!uerInfo.isMember">开通会员</button>
-				<button type="primary" v-else>续费({{uerInfo.memberExpireAt}})</button>
-			</navigator>
+		<view class="uni-panel" v-if="uerInfo.grantModelList && uerInfo.grantModelList.length > 0">
+			<div class="section">
+				<h1 class="section-title">剩余猫粮</h1>
+				<ul class="list">
+					<li class="list-item" v-for="(item, index) in uerInfo.grantModelList" :key="index">
+						<div class="thumb"
+							:style="{ backgroundColor: item.tag === 'GPT-4'  ? 'black' : 'rgb(16, 163, 127)'}">
+							<img src="/static/openai-white-logomark.png" />
+						</div>
+						<div class="item-content">
+							<h2 class="item-title">{{ item.tag }}</h2>
+							<p class="item-note">{{ item.balance }} 罐</p>
+						</div>
+					</li>
+				</ul>
+			</div>
 		</view>
 		<view v-if="hasLogin" class="uni-panel">
-			<uni-section title="选择模型" type="line">
-				<view class="uni-px-5 uni-pb-5">
-					<uni-data-select v-model="currentSelectedModel" :localdata="modelList" @change="switchModel"
-						:clear="false"></uni-data-select>
-				</view>
-			</uni-section>
+			<navigator url="/pages/sso/member" hover-class="navigator-hover">
+				<button type="primary">购买猫粮</button>
+			</navigator>
 		</view>
 		<view :class="{'pc-hide': hideList.indexOf(item.url) !== -1  && hasLeftWin}" class="uni-panel"
 			v-for="(item, index) in list" :key="item.id">
@@ -80,9 +88,7 @@
 					'ucharts',
 					'nav-city-dropdown'
 				],
-				modelList: [],
-				currentSelectedModel: 'gpt-3.5-turbo',
-				lastSelectedModel: '',
+				grantModelList: [],
 				list: [{
 						id: 'navbar',
 						name: '隐私条款',
@@ -112,8 +118,7 @@
 
 		},
 		onLoad() {
-			// 初始化模型
-			this.initModel()
+
 		},
 		watch: {
 			$route: {
@@ -148,128 +153,6 @@
 							this.refresh = true
 						})
 					})
-			},
-			async initModel() {
-				const modelSupported = await uni.request({
-					url: chatApi + `/chat_model`,
-					method: "GET",
-				});
-				this.modelList = modelSupported.data.data.map(function(option) {
-					return {
-						value: option.model,
-						text: option.model,
-					}
-				});
-
-				const currentSelectedModel = await uni.request({
-					url: chatApi + `/user_config/chat_model`,
-					method: "GET",
-					header: {
-						"Authorization": getAccessToken(),
-					},
-				});
-				if (typeof currentSelectedModel.data.data === 'string') {
-					this.currentSelectedModel = currentSelectedModel.data.data;
-					this.lastSelectedModel = this.currentSelectedModel;
-					console.log("当前选择的model:", this.currentSelectedModel)
-				}
-			},
-			switchModel(model) {
-				let currentSelectedModel = model;
-
-				let msg = "模型切换失败"
-				uni.request({
-					url: chatApi + `/user_config/switch_model`,
-					method: "POST",
-					header: {
-						"Authorization": getAccessToken(),
-					},
-					data: {
-						model: currentSelectedModel,
-					},
-					timeout: 5000,
-					dataType: "json",
-					success: (result) => {
-						if (result.statusCode === 200) {
-							console.log("模型切换成功:", currentSelectedModel);
-
-							this.lastSelectedModel = this.currentSelectedModel
-							this.currentSelectedModel = currentSelectedModel
-
-							uni.showToast({
-								title: "模型切换成功",
-								icon: 'none'
-							});
-						} else if (result.statusCode === 401) {
-							msg = '未登录或登录失效'
-							uni.showToast({
-								title: msg,
-								icon: "none",
-								complete: () => {
-									this.$nextTick(() => {
-										console.log("切换为上一次选中模型:", this.lastSelectedModel)
-										this.currentSelectedModel = this.lastSelectedModel;
-
-										setTimeout(function() {
-											uni.navigateTo({
-												url: '/pages/sso/login?is_tab=true&redirect_url=/' +
-													encodeURIComponent(this
-														.$mp.page.route)
-											})
-										}, 1500)
-									});
-								},
-							});
-							console.error("模型切换失败:", result.data.error)
-						} else if (result.statusCode === 426) {
-							msg = '只有会员才能使用该模型'
-							uni.showToast({
-								title: msg,
-								icon: "none",
-								complete: () => {
-									this.$nextTick(() => {
-										console.log("切换为上一次选中模型:", this.lastSelectedModel)
-										this.currentSelectedModel = this.lastSelectedModel;
-
-										setTimeout(function() {
-											uni.navigateTo({
-												url: '/pages/sso/member'
-											})
-										}, 1500)
-									});
-								},
-							});
-							console.error("模型切换失败:", result.data.error)
-						} else {
-							uni.showToast({
-								title: msg,
-								icon: 'none',
-								complete: () => {
-									this.$nextTick(() => {
-										console.log("切换为上一次选中模型:", this.lastSelectedModel)
-										this.currentSelectedModel = this.lastSelectedModel;
-									});
-								},
-							});
-						}
-					},
-					fail: (e) => {
-						uni.showToast({
-							title: msg,
-							icon: 'none',
-							complete: () => {
-								this.$nextTick(() => {
-									console.log("切换为上一次选中模型:", this.lastSelectedModel)
-									this.currentSelectedModel = this.lastSelectedModel;
-								});
-							},
-						});
-						console.error("模型切换失败:", e.data.error)
-					},
-					complete: () => {
-
-					}
-				})
 			},
 			bindLogin() {
 				if (this.hasLogin) {
@@ -324,5 +207,57 @@
 		width: 50px;
 		height: 50px;
 		border-radius: 50%;
+	}
+</style>
+<style scoped>
+	.section-title {
+		font-size: 16px;
+		color: #333;
+	}
+
+	.list {
+		padding: 0;
+		list-style: none;
+	}
+
+	.list-item {
+		display: flex;
+		align-items: center;
+		padding: 15px;
+		border-bottom: 1px solid #ddd;
+	}
+
+	.thumb {
+		width: 60px;
+		/* 调整为你需要的大小 */
+		height: 60px;
+		/* 调整为你需要的大小 */
+		margin-right: 20px;
+		/* 右边距，根据需要调整 */
+		border-radius: 10px;
+		/* 添加圆角 */
+		overflow: hidden;
+		/* 确保图片不超出边界 */
+	}
+
+	.thumb img {
+		width: 100%;
+		height: 100%;
+	}
+
+	.item-content {
+		flex-grow: 1;
+		/* 使内容占据剩余空间 */
+	}
+
+	.item-title {
+		font-size: 18px;
+		color: #333;
+		margin-bottom: 5px;
+	}
+
+	.item-note {
+		font-size: 14px;
+		color: #999;
 	}
 </style>

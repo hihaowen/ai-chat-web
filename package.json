@@ -12,6 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "@microsoft/fetch-event-source": "^2.0.1",
+    "@types/marked": "^4.3.0",
+    "highlight.js": "^11.8.0",
+    "marked": "^5.0.2",
     "uni-ui": "^1.0.0"
   }
 }

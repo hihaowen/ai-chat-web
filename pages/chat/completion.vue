@@ -7,8 +7,28 @@
 				<block v-for="(item, index) in chatList">
 					<view class="chat-item" :class="item.role==='user'?'me':'other'">
 						<image class="avatar" v-if="item.role!=='user'" src="/static/robot.png"></image>
-						<text class="msg" v-if="item.content" @click="copyResult( index )">{{item.content}}</text>
-						<text class="msg" v-else>{{item.placeholder}}</text>
+
+						<view class="msg"
+							:style="item.role==='error' ? {backgroundColor: '#FF69B4', color: 'white'} : {}">
+
+							<button v-if="item.role === 'user' && editingIndex !== index" @click="editMessage(index)"
+								class="btn-mini">编辑</button>
+
+							<div v-if="item.role === 'user' && editingIndex === index">
+								<input v-model="tempMessage" />
+								<button class="btn-mini" @click="saveMessage(index)">保存</button>
+								<button class="btn-mini" @click="cancelEdit">取消</button>
+							</div>
+
+							<div v-else>
+								<CopyButton v-if="item.content && item.role==='assistant'" :textToCopy="item.content" />
+								<text v-if="item.content !== ''" selectable="true" v-highlight
+									v-html="renderMarkdown(item.content)">
+								</text>
+								<text v-else class="placeholder">思考中...</text>
+							</div>
+						</view>
+
 						<image class="avatar" v-if="item.role==='user'" src="/static/user.jpg"></image>
 					</view>
 				</block>
@@ -16,18 +36,52 @@
 		</scroll-view>
 
 		<view class="input-box">
-			<uni-icons type="trash" size="20" @click="clearChat" :style="{
-			      position: 'absolute',
-			      left: '5px',
-			      top: '25px',
-			    }"></uni-icons>
-			<textarea class="input" v-model="message" @keyup.ctrl.enter.exact="send" :focus="inputFocus" @blur="onblur"
-				maxlength="4096" placeholder-style="" placeholder="请输入消息发送" />
-			<uni-icons type="paperplane" size="30" class="send" @click="send" :loading="sending"></uni-icons>
+			<button v-if="chatList.some(item => item.role === 'user')" class="generate-button"
+				@click="sending ? abortResult() : regenerateLastAssistantMessage()">
+				{{sending ? '停止生成' : '重新生成结果'}}
+			</button>
+
+			<view>
+				<uni-icons type="trash" size="20" @click="clearChat" :style="{
+				      position: 'absolute',
+				      left: '5px',
+				      top: '5px',
+				    }"></uni-icons>
+				<uni-icons type="download" size="20" @click="exportChat"
+					:style="{position: 'absolute', left: '40px', top: '5px',}"></uni-icons>
+				<uni-icons type="upload" size="20" @click="clickFileInput"
+					style="position: absolute; left: 75px; top: 5px;"></uni-icons>
+				<view :style="{position: 'absolute', left: '110px', top: '0px', lineHeight: '14px'}">
+					开启记忆
+					<switch :checked="isMemoryMode.checked" @change="switchMemoryMode"
+						:style="{transform: 'scale(0.5)'}" />
+				</view>
+				<view class="uni-px-5 uni-pb-5"
+					:style="{position: 'absolute', left: '220px', top: '0px', width: '150px'}">
+					<SelectModel @model-change="handleCurrentModel" />
+				</view>
+			</view>
+			<textarea class="input" v-model="message" @keyup.ctrl.enter.exact="send(message)" :focus="inputFocus"
+				@blur="onblur" maxlength="4096" placeholder-style="" placeholder="请输入消息发送" />
+			<button type="primary" @click="send(message)" :loading="sending">点击生成</button>
 		</view>
 	</view>
 </template>
+
 <script>
+	import {
+		marked
+	} from 'marked';
+	marked.options({
+		headerIds: false,
+		mangle: false,
+	})
+
+	import Vue from 'vue'
+
+	import CopyButton from '../../components/CopyButton.vue';
+	import SelectModel from '../../components/SelectModel.vue';
+
 	import {
 		chatApi
 	} from '../../package.json'
@@ -52,6 +106,10 @@
 	class InterruptError extends Error {}
 
 	export default {
+		components: {
+			CopyButton,
+			SelectModel,
+		},
 		data() {
 			return {
 				message: '',
@@ -60,11 +118,38 @@
 				ctrl: new AbortController(),
 				inputFocus: true,
 				scrollHeight: 0,
+				editingIndex: -1,
+				tempMessage: "",
+				isMemoryMode: {
+					checked: true
+				},
+				currentSelectedModel: "gpt-3.5-turbo",
 			}
+		},
+		onLoad() {
+
 		},
 		onReady() {},
 		mounted() {
-
+			// 记忆模式
+			this.isMemoryMode.checked = localStorage.getItem('memoryMode') === 'true';
+		},
+		updated() {
+			debounce(this.update, 5000);
+		},
+		watch: {
+			chatList: {
+				deep: true,
+				handler() {
+					this.saveChat();
+				},
+			},
+		},
+		created() {
+			const savedChatList = localStorage.getItem('chatList');
+			if (savedChatList) {
+				this.chatList = JSON.parse(savedChatList);
+			}
 		},
 		computed: {
 			windowObj() {
@@ -76,12 +161,139 @@
 				})
 
 				return obj
-			}
+			},
 		},
 		methods: {
+			handleCurrentModel(newModel) {
+				if (newModel) {
+					this.currentSelectedModel = newModel
+				}
+			},
+			switchMemoryMode(e) {
+				let value = e.target.value
+				this.$set(this.isMemoryMode, 'checked', value)
+				// 当 isMemoryMode 发生变化时，将其保存到 localStorage
+				localStorage.setItem('memoryMode', value.toString());
+				console.log("用户切换记忆模式:", value)
+			},
+			cancelEdit() {
+				// 退出编辑状态
+				this.editingIndex = -1;
+				// 清空临时变量
+				this.tempMessage = "";
+			},
+			editMessage(index) {
+				this.editingIndex = index;
+				// 将当前消息内容赋值给一个临时变量
+				this.tempMessage = this.chatList[index].content;
+			},
+			saveMessage(index) {
+				// 更新用户消息内容
+				this.chatList[index].content = this.tempMessage;
+				// 清空临时变量
+				this.tempMessage = "";
+				// 退出编辑状态
+				this.editingIndex = -1;
+				// 丢弃当前修改的消息往后的内容
+				this.chatList.splice(index + 1);
+				// 触发重新生成功能
+				this.send(this.chatList[index].content, true);
+			},
+			renderMarkdown(text) {
+				return text ? marked(text) : ''
+			},
+			update() {
+				// TODO
+				// console.log("开始update...")
+				document.querySelectorAll('pre').forEach(el => {
+					// TODO
+					// console.log(el)
+					if (el.classList.contains('code-copy-added')) return
+					// https://cn.vuejs.org/v2/api/index.html#Vue-extend
+					/* 使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象 */
+					let ComponentClass = Vue.extend(CopyButton)
+					let instance = new ComponentClass()
+					instance.textToCopy = el.innerText
+					instance.iconStyle = {
+						width: '0.8rem',
+						height: '0.8rem',
+						fill: 'white',
+					}
+					instance.copyTextStyle = {
+						color: "white"
+					}
+
+					/* 手动挂载 */
+					instance.$mount()
+					el.classList.add('code-copy-added')
+					el.appendChild(instance.$el)
+				})
+			},
+			clickFileInput() {
+				let self = this
+
+				uni.chooseFile({
+					count: 1,
+					extension: ['.json'],
+					success: function(res) {
+						// TODO
+						console.log("用户选择的文件:", JSON.stringify(res.tempFilePaths));
+
+						const fileUrl = res.tempFilePaths[0];
+						fetch(fileUrl)
+							.then(response => response.json())
+							.then(data => {
+								// console.log("用户选择的文件内容:", data)
+								if (Array.isArray(data) && data.every(item => typeof item === 'object' &&
+										'role' in item &&
+										'content' in item)) {
+									self.chatList = data;
+									self.saveChat();
+								} else {
+									alert('无效的聊天记录文件');
+								}
+							})
+							.catch((error) => {
+								console.log('Error:', error);
+							});
+					}
+				});
+			},
 			clearChat() {
-				this.chatList = [];
-				this.abortResult();
+				if (window.confirm("确认清空记录?")) {
+					this.chatList = [];
+					this.abortResult();
+					localStorage.removeItem('chatList');
+				}
+			},
+			exportChat() {
+				const a = document.createElement('a');
+				const file = new Blob([JSON.stringify(this.chatList)], {
+					type: 'application/json'
+				});
+				a.href = URL.createObjectURL(file);
+				a.download = 'chat.json';
+				a.click();
+			},
+			importChat(e) {
+				const file = e.target.files[0];
+				if (file) {
+					const reader = new FileReader();
+					reader.onload = (e) => {
+						const data = JSON.parse(e.target.result);
+						if (Array.isArray(data) && data.every(item => typeof item === 'object' && 'role' in item &&
+								'content' in item)) {
+							this.chatList = data;
+							this.saveChat();
+						} else {
+							alert('无效的聊天记录文件');
+						}
+					};
+					reader.readAsText(file);
+				}
+			},
+			saveChat() {
+				localStorage.setItem('chatList', JSON.stringify(this.chatList));
 			},
 			setScrollTop() {
 				try {
@@ -102,19 +314,9 @@
 				this.ctrl.abort();
 				this.sending = false;
 				this.ctrl = new AbortController();
+				this.removeLastInvalidMessage();
+				this.cancelEdit();
 				console.log("停止回答");
-			},
-			// 添加复制结果的方法
-			copyResult(index) {
-				uni.setClipboardData({
-					data: this.chatList[index].content,
-					success() {
-						uni.showToast({
-							title: "已复制",
-							icon: "success",
-						});
-					},
-				});
 			},
 			onblur() {
 				this.inputFocus = false;
@@ -122,13 +324,39 @@
 			onUnload() {
 				this.abortResult();
 			},
-			send() {
-				if (this.sending === true) {
-					this.abortResult();
-					return;
+			// 清除最后一条无效记录: error、空信息
+			removeLastInvalidMessage() {
+				let lastIdx = this.chatList.length - 1
+				if (this.chatList[lastIdx]) {
+					if (this.chatList[lastIdx].role != 'user' && this.chatList[lastIdx].role != 'assistant' ||
+						this.chatList[lastIdx].content.length === 0) {
+						this.chatList.splice(lastIdx, 1);
+					}
+				}
+			},
+			regenerateLastAssistantMessage() {
+				let lastUserMessage = '';
+				for (let i = this.chatList.length - 1; i >= 0; i--) {
+					// 确保元素存在
+					if (this.chatList[i]) {
+						if (this.chatList[i].role !== 'user') {
+							this.chatList.splice(i, 1);
+						} else {
+							lastUserMessage = this.chatList[i].content;
+							break;
+						}
+					}
 				}
 
-				if (this.message === "") {
+				if (lastUserMessage !== '') {
+					this.removeLastInvalidMessage();
+					this.$nextTick(() => {
+						this.send(lastUserMessage, true);
+					});
+				}
+			},
+			send(message = this.message, isRegenerating = false) {
+				if (message === "" && !isRegenerating) {
 					this.inputFocus = false;
 					this.$nextTick(() => {
 						this.inputFocus = true;
@@ -136,23 +364,32 @@
 					return;
 				}
 
-				this.sending = true // 发送中设置为true,禁止再次点击发送
-				this.chatList.push({
-					role: 'user',
-					placeholder: "",
-					content: this.message,
-				})
-				this.message = '' // 清空输入框
+				this.sending = true;
+				this.ctrl = new AbortController();
+
+				if (!isRegenerating) {
+					this.chatList.push({
+						role: 'user',
+						content: message,
+					});
+					this.message = '';
+				}
 
 				// 发送请求获取机器人回复
 				let robotIndex = this.chatList.push({
 					role: 'assistant',
-					placeholder: "思考中...",
 					content: "",
-				})
-				robotIndex -= 1
+				}) - 1;
 
-				debounce(this.setScrollTop, 50)
+				debounce(this.setScrollTop, 50);
+
+				let dataToSend = this.chatList.filter((item) => {
+					return (item.role === 'user' ||
+							item.role === 'assistant' ||
+							item.role === 'system') &&
+						item.content !== ""
+				})
+				dataToSend = this.isMemoryMode.checked ? dataToSend : [dataToSend[dataToSend.length - 1]];
 
 				fetchEventSource(chatApi + `/chat/streaming_completion`, {
 					signal: this.ctrl.signal,
@@ -162,9 +399,10 @@
 						'Content-Type': 'application/json',
 						'Authorization': getAccessToken(),
 					},
-					body: JSON.stringify(this.chatList.filter((item) => {
-						return item.content !== ''
-					})),
+					body: JSON.stringify({
+						"model": this.currentSelectedModel,
+						"messages": dataToSend,
+					}),
 					async onopen(response) {
 						if (response.ok && response.headers.get('content-type') ===
 							EventStreamContentType) {
@@ -204,6 +442,10 @@
 					}
 				}).catch((err) => {
 					let msg = `请求失败`
+
+					this.chatList[robotIndex].role = "error"
+					this.chatList[robotIndex].content = "[系统错误,请稍后重试]"
+
 					if (err instanceof UnauthorizedError) {
 						msg = '未登录或登录失效'
 						uni.showToast({
@@ -245,7 +487,7 @@
 					}
 				}).finally(() => {
 					console.log('全部完成.');
-					this.sending = false; // 获取回复后可以再次发送,设置为false
+					this.sending = false;
 					this.inputFocus = true;
 					this.setScrollTop();
 				});
@@ -272,7 +514,7 @@
 
 	.chat-item {
 		display: flex;
-		padding: 10px;
+		padding: 15px;
 	}
 
 	.me {
@@ -284,10 +526,12 @@
 	}
 
 	.msg {
+		display: inline;
 		max-width: 70%;
 		border-radius: 10px;
 		padding: 20px;
 		font-size: 16px;
+		position: relative;
 	}
 
 	.chat-item image {
@@ -307,13 +551,20 @@
 
 	.input-box {
 		display: flex;
-		position: fixed;
+		position: relative;
 		width: 100%;
 		height: 100px;
 		bottom: var(--window-bottom);
 		left: 0;
 		align-items: center;
 		background-color: #fff;
+	}
+
+	.generate-button {
+		position: absolute;
+		top: -30px;
+		left: 50%;
+		transform: translateX(-50%);
 	}
 
 	.input {
@@ -334,5 +585,16 @@
 	.input-box button {
 		height: 30px;
 		font-size: 14px;
+	}
+
+	/deep/ .code-copy-added {
+		position: relative;
+	}
+
+	.btn-mini {
+		display: inline-block;
+		line-height: 1.5;
+		font-size: 12px;
+		padding: 0 0.5em;
 	}
 </style>

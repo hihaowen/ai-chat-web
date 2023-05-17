@@ -3,9 +3,9 @@ import {
 } from '../package.json'
 
 export const saveLoginInfo = (data) => {
-	if (typeof data.nickname != "undefined") {
-		// localStorage.setItem("nickname", data.nickname);
-		uni.setStorageSync('nickname', data.nickname);
+	if (typeof data.login_nickname != "undefined") {
+		// localStorage.setItem("login_nickname", data.login_nickname);
+		uni.setStorageSync('login_nickname', data.login_nickname);
 	}
 	if (typeof data.access_token != "undefined") {
 		// localStorage.setItem("access_token", data.access_token);

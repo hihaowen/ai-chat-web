@@ -19,10 +19,11 @@ const store = createStore({
 	mutations: {
 		login(state, provider) {
 			// 用户信息
-			if (typeof provider.nickname != "undefined") {
-				state.uerInfo.nickname = provider.nickname;
+			if (typeof provider.login_uid != "undefined") {
+				state.uerInfo.nickname = provider.login_nickname;
 				state.uerInfo.isMember = provider.is_member;
 				state.uerInfo.memberExpireAt = provider.member_expire_at;
+				state.uerInfo.grantModelList = provider.chat_model_list;
 				state.hasLogin = true;
 			} else {
 				state.uerInfo = {};

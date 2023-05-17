@@ -5,6 +5,12 @@
 		</uni-card>
 
 		<form @submit.prevent="submitForm">
+			<uni-section title="LLM模型" type="line">
+				<view class="uni-px-5 uni-pb-5">
+					<SelectModel @model-change="handleCurrentModel" />
+				</view>
+			</uni-section>
+
 			<uni-section v-for="(field, index) in form.fields" :key="index" :title="field.name" type="line">
 				<view class="uni-px-5 uni-pb-5">
 					<view v-if="field.type === 'input'" :label="field.name" :required="field.required">
@@ -27,7 +33,6 @@
 							:localdata="field.optional_value" @change="onRadioChange(field.id, $event)" />
 					</view>
 				</view>
-
 			</uni-section>
 
 			<view class="uni-px-5 uni-pb-5">
@@ -49,6 +54,8 @@
 		chatApi
 	} from '../../package.json'
 
+	import SelectModel from '../../components/SelectModel.vue';
+
 	import {
 		getAccessToken
 	} from '../../common/sso.js'
@@ -69,6 +76,9 @@
 	class InterruptError extends Error {}
 
 	export default {
+		components: {
+			SelectModel,
+		},
 		data() {
 			return {
 				form: {}, // 从 API 获取的表单数据
@@ -78,6 +88,7 @@
 				ctrl: new AbortController(),
 				windowHeight: 0, // 窗口高度
 				userScrollTop: 0, // 用户滑动高度
+				currentSelectedModel: "gpt-3.5-turbo",
 			};
 		},
 		onLoad(options) {
@@ -104,6 +115,11 @@
 			}
 		},
 		methods: {
+			handleCurrentModel(newModel) {
+				if (newModel) {
+					this.currentSelectedModel = newModel
+				}
+			},
 			scrollToBottom() {
 				const query = uni.createSelectorQuery();
 				query.select('#resultView').boundingClientRect();
@@ -184,6 +200,9 @@
 				this.sending = true;
 				this.result = ''; // 清空当前答案
 
+				let formData = this.formData
+				formData["model"] = this.currentSelectedModel
+
 				fetchEventSource(url, {
 					signal: this.ctrl.signal,
 					method: 'POST',
@@ -192,7 +211,7 @@
 						'Content-Type': 'application/json',
 						'Authorization': getAccessToken(),
 					},
-					body: JSON.stringify(this.formData),
+					body: JSON.stringify(formData),
 					async onopen(response) {
 						if (response.ok && response.headers.get('content-type') ===
 							EventStreamContentType) {

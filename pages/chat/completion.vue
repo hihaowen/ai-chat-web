@@ -106,6 +106,7 @@
 	class InterruptError extends Error {}
 
 	export default {
+		props: ['session'],
 		components: {
 			CopyButton,
 			SelectModel,
@@ -134,22 +135,26 @@
 			// 记忆模式
 			this.isMemoryMode.checked = localStorage.getItem('memoryMode') === 'true';
 		},
-		updated() {
-			debounce(this.update, 5000);
-		},
 		watch: {
-			chatList: {
-				deep: true,
-				handler() {
-					this.saveChat();
-				},
+			session: {
+				immediate: true,
+				async handler(newSession, oldSession) {
+					if (newSession !== oldSession) {
+						console.log("会话已改变,重新加载聊天记录...");
+						this.abortResult()
+						// 当 session 改变时，重新加载聊天记录
+						this.chatList = this.loadChatList()
+					} else {
+						console.log("会话未改变,毋需重新加载聊天记录");
+					}
+				}
 			},
 		},
 		created() {
-			const savedChatList = localStorage.getItem('chatList');
-			if (savedChatList) {
-				this.chatList = JSON.parse(savedChatList);
-			}
+
+		},
+		updated() {
+			this.addCopyButtonIfNecessary();
 		},
 		computed: {
 			windowObj() {
@@ -164,6 +169,13 @@
 			},
 		},
 		methods: {
+			loadChatList() {
+				const savedChatList = localStorage.getItem('chatList-' + this.session.id);
+				if (savedChatList) {
+					return JSON.parse(savedChatList);
+				}
+				return [];
+			},
 			handleCurrentModel(newModel) {
 				if (newModel) {
 					this.currentSelectedModel = newModel
@@ -202,7 +214,7 @@
 			renderMarkdown(text) {
 				return text ? marked(text) : ''
 			},
-			update() {
+			addCopyButtonIfNecessary() {
 				// TODO
 				// console.log("开始update...")
 				document.querySelectorAll('pre').forEach(el => {
@@ -263,7 +275,7 @@
 				if (window.confirm("确认清空记录?")) {
 					this.chatList = [];
 					this.abortResult();
-					localStorage.removeItem('chatList');
+					localStorage.removeItem('chatList-' + this.session.id);
 				}
 			},
 			exportChat() {
@@ -293,7 +305,7 @@
 				}
 			},
 			saveChat() {
-				localStorage.setItem('chatList', JSON.stringify(this.chatList));
+				localStorage.setItem('chatList-' + this.session.id, JSON.stringify(this.chatList));
 			},
 			setScrollTop() {
 				try {
@@ -443,53 +455,34 @@
 				}).catch((err) => {
 					let msg = `请求失败`
 
-					this.chatList[robotIndex].role = "error"
-					this.chatList[robotIndex].content = "[系统错误,请稍后重试]"
-
 					if (err instanceof UnauthorizedError) {
 						msg = '未登录或登录失效'
-						uni.showToast({
-							title: msg,
-							icon: "none",
-							complete: () => {
-								setTimeout(function() {
-									uni.navigateTo({
-										url: '/pages/sso/login'
-									})
-								}, 1500);
-							},
-						});
+						setTimeout(function() {
+							uni.navigateTo({
+								url: '/pages/sso/login'
+							})
+						}, 1500);
 					} else if (err instanceof UpgradeRequiredError) {
-						msg = '免费额度已用尽'
-						uni.showToast({
-							title: msg,
-							icon: "none",
-							complete: () => {
-								setTimeout(function() {
-									uni.navigateTo({
-										url: '/pages/sso/member'
-									})
-								}, 1500);
-							},
-						});
+						msg = '猫粮吃完了'
+						setTimeout(function() {
+							uni.navigateTo({
+								url: '/pages/sso/member'
+							})
+						}, 1500);
 					} else if (err instanceof InterruptError) {
-						msg = 'Stream发送中断'
-						uni.showToast({
-							title: msg,
-							icon: "none",
-						});
+						msg = '发送中断'
 					} else {
 						console.log(err.name + `: ${err.message}`)
-						uni.showToast({
-							title: msg,
-							icon: "none",
-						});
 					}
+
+					this.chatList[robotIndex].role = "error"
+					this.chatList[robotIndex].content = `[${msg}]`
 				}).finally(() => {
 					console.log('全部完成.');
 					this.sending = false;
 					this.inputFocus = true;
 					this.setScrollTop();
+					this.saveChat();
 				});
 			}
 		}

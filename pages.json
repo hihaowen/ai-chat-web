@@ -13,12 +13,6 @@
 				"navigationBarTitleText": "表单对话"
 			}
 		}, {
-			"path": "pages/chat/completion",
-			"style": {
-				"navigationBarTitleText": "随便聊聊",
-				"enablePullDownRefresh": false
-			}
-		}, {
 			"path": "pages/index/app",
 			"style": {
 				"navigationBarTitleText": "常见应用",
@@ -64,6 +58,12 @@
 			"path": "pages/common/terms",
 			"style": {
 				"navigationBarTitleText": "使用条款",
+				"enablePullDownRefresh": false
+			}
+		}, {
+			"path": "pages/chat/manager",
+			"style": {
+				"navigationBarTitleText": "Chat",
 				"enablePullDownRefresh": false
 			}
 		}

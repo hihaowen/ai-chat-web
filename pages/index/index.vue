@@ -26,7 +26,7 @@
 		methods: {
 			startChat(e) {
 				uni.navigateTo({
-					url: `/pages/chat/completion`
+					url: `/pages/chat/manager`
 				})
 			},
 			formChat(e) {

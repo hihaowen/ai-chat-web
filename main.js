@@ -7,24 +7,6 @@ Vue.config.productionTip = false
 Vue.prototype.$store = store
 App.mpType = 'app'
 
-import {
-	debounce,
-} from './common/utils.js'
-
-import hljs from 'highlight.js';
-import 'highlight.js/styles/atom-one-dark.css'
-// 创建v-highlight全局指令
-Vue.directive('highlight', function(el) {
-	let blocks = el.querySelectorAll('pre code');
-	blocks.forEach((block) => {
-		debounce(
-			() => {
-				hljs.highlightBlock(block)
-			}, 5000
-		);
-	});
-});
-
 import VueClipboard from 'vue-clipboard2'
 Vue.use(VueClipboard)
 

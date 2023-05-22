@@ -105,7 +105,7 @@
 					},
 					{
 						name: '问题反馈',
-						url: 'https://github.com/hihaowen/ai-chat-web/issues',
+						url: 'https://tally.so/r/mRdPaK',
 					},
 				]
 			}

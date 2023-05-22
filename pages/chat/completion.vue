@@ -22,7 +22,7 @@
 
 							<div v-else>
 								<CopyButton v-if="item.content && item.role==='assistant'" :textToCopy="item.content" />
-								<text v-if="item.content !== ''" selectable="true" v-highlight
+								<text v-if="item.content !== ''" selectable="true"
 									v-html="renderMarkdown(item.content)">
 								</text>
 								<text v-else class="placeholder">思考中...</text>
@@ -61,21 +61,45 @@
 					<SelectModel @model-change="handleCurrentModel" />
 				</view>
 			</view>
-			<textarea class="input" v-model="message" @keyup.ctrl.enter.exact="send(message)" :focus="inputFocus"
+			<textarea class="input" v-model="message" @keyup.enter.exact="send(message)" :focus="inputFocus"
 				@blur="onblur" maxlength="4096" placeholder-style="" placeholder="请输入消息发送" />
-			<button type="primary" @click="send(message)" :loading="sending">点击生成</button>
+			<button type="primary" @click="send(message)" :loading="sending">发送</button>
 		</view>
 	</view>
 </template>
 
 <script>
+	import hljs from 'highlight.js';
+	import 'highlight.js/styles/atom-one-dark.css'
+
 	import {
 		marked
 	} from 'marked';
-	marked.options({
-		headerIds: false,
-		mangle: false,
-	})
+
+	marked.setOptions({
+		silent: true,
+		xhtml: true,
+		breaks: true,
+		gfm: true,
+	});
+	const renderer = {
+		code(code, lang) {
+			let language = 'plaintext';
+			let highlightedCode;
+			try {
+				highlightedCode = hljs.highlightAuto(code).value;
+			} catch {
+				language = hljs.getLanguage(lang) ? lang : 'plaintext';
+				highlightedCode = hljs.highlight(code, {
+					language
+				}).value;
+			}
+			return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${highlightedCode}</code></pre>`;
+		},
+	};
+	marked.use({
+		renderer
+	});
 
 	import Vue from 'vue'
 
@@ -436,6 +460,18 @@
 						}
 
 						const data = JSON.parse(msg.data);
+
+						if (msg.event === 'DoneSummary') {
+							console.log("Done Summary:", data.data);
+
+							// 如果total_cost等于模型最大限制,则认为当前完成内容不完整
+							if (data.data.total_cost >= data.data.max_token_limit) {
+								console.log("当前内容可能不完整!")
+							}
+
+							return;
+						}
+
 						if (data.data === "[DONE]") {
 							console.log("结束.");
 							return

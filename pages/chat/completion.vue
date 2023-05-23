@@ -499,7 +499,7 @@
 							})
 						}, 1500);
 					} else if (err instanceof UpgradeRequiredError) {
-						msg = '猫粮吃完了'
+						msg = '猫粮不足或已吃完'
 						setTimeout(function() {
 							uni.navigateTo({
 								url: '/pages/sso/member'

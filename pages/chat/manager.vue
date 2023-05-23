@@ -11,7 +11,7 @@
 				<div v-else @click="switchNewSession(session.id)">
 					{{ session.title }} {{activeSession.id === session.id ? '(当前)' : ''}}
 					<button class="btn-mini" @click="startEdit(session.id, session.title)">编辑</button>
-					<button class="btn-mini" @click.stop="deleteSession(session.id)">删除</button>
+					<button class="btn-mini" @click.stop="deleteOldSession(session.id)">删除</button>
 				</div>
 			</div>
 		</div>
@@ -75,6 +75,19 @@
 				uni.setNavigationBarTitle({
 					title: this.activeSession.title
 				});
+			},
+			deleteOldSession(sessionId) {
+				self = this
+				uni.showModal({
+					title: '提示',
+					content: '确定要删除吗？',
+					confirmText: '确定',
+					success: function(res) {
+						if (res.confirm) {
+							self.deleteSession(sessionId)
+						}
+					}
+				})
 			},
 		},
 	};

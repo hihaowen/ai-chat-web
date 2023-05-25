@@ -2,6 +2,22 @@ import {
 	chatApi
 } from '../package.json'
 
+export const getAccessToken = () => {
+	// return localStorage.getItem("access_token");
+	return uni.getStorageSync("access_token");
+}
+
+export const clearLoginInfo = () => {
+	// localStorage.clear();
+	try {
+		uni.removeStorageSync('login_nickname');
+		uni.removeStorageSync('access_token');
+		uni.removeStorageSync('refresh_token');
+	} catch (e) {
+		// error
+	}
+}
+
 export const saveLoginInfo = (data) => {
 	if (typeof data.login_nickname != "undefined") {
 		// localStorage.setItem("login_nickname", data.login_nickname);
@@ -41,20 +57,6 @@ export const checkCodeProcess = (code, resultFunc) => {
 			if (resultFunc) resultFunc(result);
 		}
 	);
-}
-
-export const clearLoginInfo = () => {
-	// localStorage.clear();
-	try {
-		uni.clearStorageSync();
-	} catch (e) {
-		// error
-	}
-}
-
-export const getAccessToken = () => {
-	// return localStorage.getItem("access_token");
-	return uni.getStorageSync("access_token");
 }
 
 function request(method, api, params, resultFunc, completeFunc) {

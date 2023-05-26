@@ -21,7 +21,7 @@
 						</div>
 						<div class="item-content">
 							<h2 class="item-title">{{ item.tag }}</h2>
-							<p class="item-note">{{ item.balance }} 罐</p>
+							<p class="item-note">{{ item.balance }} 粒</p>
 						</div>
 					</li>
 				</ul>

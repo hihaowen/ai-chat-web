@@ -477,7 +477,11 @@
 							return
 						}
 
-						this.chatList[robotIndex].content += data.data;
+						if (this.currentSelectedModel === "bing") {
+							this.chatList[robotIndex].content = data.data;
+						} else {
+							this.chatList[robotIndex].content += data.data;
+						}
 
 						debounce(this.setScrollTop, 500)
 					},

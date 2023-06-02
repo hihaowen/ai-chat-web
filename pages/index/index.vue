@@ -1,15 +1,14 @@
 <template>
 	<view class="home">
-		<uni-list-item title="懒猫说" note="通过 AI 技术实现的智能对话，帮助您更快捷地解决问题。" thumb="/static/logo.png" thumb-size="lg" />
+		<uni-list-item title="猫说" note="通过 AI 技术实现的智能对话，帮助您更快捷地解决问题。" thumb="/static/logo.png" thumb-size="lg" />
 
-		<uni-notice-bar show-get-more show-icon scrollable text="免费用户使用GPT3.5模型已足够出色；付费用户可享用更先进的GPT4模型。" @getmore="buyMember" />
+		<uni-notice-bar show-get-more show-icon scrollable text="最新增加Bing模型,基于GPT-4模型,支持实时搜索。" @getmore="buyMember" />
 
 		<view class="content">
 			<uni-card title="AI对话" sub-title="像和朋友一样聊天，随时随地获得各类知识。" extra="去试试 >" thumbnail="/static/robot-icon.png"
 				@click="startChat">
-				<text class="uni-body">使用: 免费用户可以使用GPT3.5模型,每日有15次免费额度,会员无限制
-					擅长: 聊天、写作、翻译、推理等
-					能力: 支持连续对话,根据图片、网页等远程地址进行实时分析
+				<text class="uni-body">擅长: 聊天、写作、翻译、推理等
+					能力: 多窗口对话,历史记录导入、导出,支持记忆
 					技术: 基于大语言模型构建
 				</text>
 			</uni-card>

@@ -7,7 +7,7 @@ Vue.config.productionTip = false
 Vue.prototype.$store = store
 App.mpType = 'app'
 
-import VueClipboard from 'vue-clipboard2'
+import VueClipboard from 'vue-clipboard'
 Vue.use(VueClipboard)
 
 try {

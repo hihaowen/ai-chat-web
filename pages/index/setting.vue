@@ -15,10 +15,17 @@
 				<h1 class="section-title">剩余猫粮</h1>
 				<ul class="list">
 					<li class="list-item" v-for="(item, index) in uerInfo.grantModelList" :key="index">
-						<div class="thumb"
-							:style="{ backgroundColor: item.tag === 'GPT-4'  ? 'black' : 'rgb(16, 163, 127)'}">
+						<div v-if="item.tag === 'GPT-4'" class="thumb" :style="{ backgroundColor: 'black'}">
 							<img src="/static/openai-white-logomark.png" />
 						</div>
+						<div v-else-if="item.tag === 'GPT-3.5'" class="thumb"
+							:style="{ backgroundColor: 'rgb(16, 163, 127)'}">
+							<img src="/static/openai-white-logomark.png" />
+						</div>
+						<div v-else-if="item.tag === 'Bing'" class="thumb">
+							<img src="/static/bing.png" />
+						</div>
+						<div v-else class="thumb"></div>
 						<div class="item-content">
 							<h2 class="item-title">{{ item.tag }}</h2>
 							<p class="item-note">{{ item.balance }} 粒</p>

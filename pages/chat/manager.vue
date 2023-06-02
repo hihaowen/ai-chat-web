@@ -16,7 +16,7 @@
 			</div>
 		</div>
 		<div class="chat-window">
-			<Chat :session="activeSession" />
+			<Chat :session="activeSession" :currentPageRoute="currentPageRoute" />
 		</div>
 	</div>
 </template>
@@ -36,6 +36,7 @@
 			return {
 				newTitle: '', // For editing session titles
 				editingSessionId: null, // The id of the session being edited
+				currentPageRoute: '',
 			};
 		},
 		computed: {
@@ -48,6 +49,7 @@
 			uni.setNavigationBarTitle({
 				title: this.activeSession.title
 			});
+			this.currentPageRoute = this.$mp.page.route
 		},
 		methods: {
 			...mapMutations(['createSession', 'switchSession', 'deleteSession', 'editSessionTitle']),

@@ -42,8 +42,8 @@
 
 		<!-- 生成的答案部分，添加点击复制功能 -->
 		<uni-section title="生成的答案" type="line">
-			<view v-if="result" id="resultView" @click="copyResult" class="uni-px-5 uni-pb-5">
-				<text>{{ result }}</text>
+			<view v-if="result" id="resultView" class="uni-px-5 uni-pb-5">
+				<text selectable="true" v-html="result"></text>
 			</view>
 		</uni-section>
 	</view>
@@ -89,9 +89,15 @@
 				windowHeight: 0, // 窗口高度
 				userScrollTop: 0, // 用户滑动高度
 				currentSelectedModel: "gpt-3.5-turbo",
+				currentPageInfo: {},
 			};
 		},
 		onLoad(options) {
+			this.currentPageInfo = {
+				route: this.$mp.page.route,
+				params: this.$root.$mp.query
+			};
+
 			this.fetchForm(options.form);
 
 			// 获取窗口高度
@@ -233,13 +239,30 @@
 						}
 
 						const data = JSON.parse(msg.data);
+
+						if (msg.event === 'DoneSummary') {
+							console.log("Done Summary:", data.data);
+
+							// 如果total_cost等于模型最大限制,则认为当前完成内容不完整
+							if (data.data.total_cost >= data.data.max_token_limit) {
+								console.log("当前内容可能不完整!")
+							}
+
+							return
+						}
+
 						if (data.data === "[DONE]") {
 							console.log("结束.");
 							return
 						}
 
+						if (this.currentSelectedModel === "bing") {
+							this.result = data.data;
+						} else {
+							this.result += data.data;
+						}
+
 						// console.log(data.data)
-						this.result += data.data;
 					},
 					onclose() {
 						// if the server closes the connection unexpectedly, retry:
@@ -267,15 +290,21 @@
 							title: msg,
 							icon: "none",
 							complete: () => {
-								setTimeout(function() {
+								setTimeout(() => {
+									let route = this.currentPageInfo.route
+									let form = this.currentPageInfo.params.form
+									let redirectUrl = "/" + route + "?form=" + form
+									let url =
+										`/pages/sso/login?redirect_url=${encodeURIComponent(redirectUrl)}`;
+									console.log("back url:", url)
 									uni.navigateTo({
-										url: '/pages/sso/login'
+										url: url,
 									})
 								}, 1500);
 							},
 						});
 					} else if (err instanceof UpgradeRequiredError) {
-						msg = '免费额度已用尽'
+						msg = '猫粮不足或已吃完'
 						uni.showToast({
 							title: msg,
 							icon: "none",

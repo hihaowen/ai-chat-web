@@ -61,8 +61,8 @@
 					<SelectModel @model-change="handleCurrentModel" />
 				</view>
 			</view>
-			<textarea class="input" v-model="message" @keyup.enter.exact="send(message)" :focus="inputFocus"
-				@blur="onblur" maxlength="4096" placeholder-style="" placeholder="请输入消息发送" />
+			<textarea class="input" v-model="message" @keydown.enter.prevent="send(message)" maxlength="4096"
+				placeholder-style="" placeholder="请输入消息发送" />
 			<button type="primary" @click="send(message)" :loading="sending">发送</button>
 		</view>
 	</view>
@@ -85,15 +85,20 @@
 	const renderer = {
 		code(code, lang) {
 			let language = 'plaintext';
-			let highlightedCode;
-			try {
-				highlightedCode = hljs.highlightAuto(code).value;
-			} catch {
-				language = hljs.getLanguage(lang) ? lang : 'plaintext';
-				highlightedCode = hljs.highlight(code, {
-					language
-				}).value;
-			}
+			// 强制设置类型,解决卡顿问题
+			let highlightedCode = hljs.highlight('javascript', code).value;
+
+			// let highlightedCode;
+			// try {
+			// 	highlightedCode = hljs.highlightAuto(code).value;
+			// } catch {
+			// 	language = hljs.getLanguage(lang) ? lang : 'plaintext';
+			// 	highlightedCode = hljs.highlight(code, {
+			// 		language
+			// 	}).value;
+			// }
+			// console.log("language:", language)
+
 			return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${highlightedCode}</code></pre>`;
 		},
 	};
@@ -130,7 +135,7 @@
 	class InterruptError extends Error {}
 
 	export default {
-		props: ['session'],
+		props: ['session', 'currentPageRoute'],
 		components: {
 			CopyButton,
 			SelectModel,
@@ -141,7 +146,6 @@
 				chatList: [],
 				sending: false,
 				ctrl: new AbortController(),
-				inputFocus: true,
 				scrollHeight: 0,
 				editingIndex: -1,
 				tempMessage: "",
@@ -149,12 +153,13 @@
 					checked: true
 				},
 				currentSelectedModel: "gpt-3.5-turbo",
+				enterKeyPressed: false,
 			}
 		},
-		onLoad() {
+		onLoad() {},
+		onReady() {
 
 		},
-		onReady() {},
 		mounted() {
 			// 记忆模式
 			this.isMemoryMode.checked = localStorage.getItem('memoryMode') === 'true';
@@ -193,6 +198,11 @@
 			},
 		},
 		methods: {
+			captureEnter(event) {
+				event.preventDefault();
+				this.enterKeyPressed = true;
+				console.log("???")
+			},
 			loadChatList() {
 				const savedChatList = localStorage.getItem('chatList-' + this.session.id);
 				if (savedChatList) {
@@ -239,11 +249,7 @@
 				return text ? marked(text) : ''
 			},
 			addCopyButtonIfNecessary() {
-				// TODO
-				// console.log("开始update...")
 				document.querySelectorAll('pre').forEach(el => {
-					// TODO
-					// console.log(el)
 					if (el.classList.contains('code-copy-added')) return
 					// https://cn.vuejs.org/v2/api/index.html#Vue-extend
 					/* 使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象 */
@@ -354,9 +360,6 @@
 				this.cancelEdit();
 				console.log("停止回答");
 			},
-			onblur() {
-				this.inputFocus = false;
-			},
 			onUnload() {
 				this.abortResult();
 			},
@@ -393,10 +396,6 @@
 			},
 			send(message = this.message, isRegenerating = false) {
 				if (message === "" && !isRegenerating) {
-					this.inputFocus = false;
-					this.$nextTick(() => {
-						this.inputFocus = true;
-					});
 					return;
 				}
 
@@ -497,9 +496,10 @@
 
 					if (err instanceof UnauthorizedError) {
 						msg = '未登录或登录失效'
-						setTimeout(function() {
+						setTimeout(() => {
 							uni.navigateTo({
-								url: '/pages/sso/login'
+								url: '/pages/sso/login?redirect_url=/' + encodeURIComponent(this
+									.currentPageRoute),
 							})
 						}, 1500);
 					} else if (err instanceof UpgradeRequiredError) {
@@ -520,7 +520,6 @@
 				}).finally(() => {
 					console.log('全部完成.');
 					this.sending = false;
-					this.inputFocus = true;
 					this.setScrollTop();
 					this.saveChat();
 				});

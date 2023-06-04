@@ -52,7 +52,7 @@ const store = createStore({
 		},
 		createSession(state, title) {
 			const newSessionId = generateUUID();
-			state.sessions.push({id: newSessionId, title: title});
+			state.sessions.unshift({id: newSessionId, title: title});
 			state.activeSessionId = newSessionId;
 			// Store to local storage
 			localStorage.setItem('sessions', JSON.stringify(state.sessions));

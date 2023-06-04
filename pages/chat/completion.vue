@@ -11,13 +11,27 @@
 						<view class="msg"
 							:style="item.role==='error' ? {backgroundColor: '#FF69B4', color: 'white'} : {}">
 
-							<button v-if="item.role === 'user' && editingIndex !== index" @click="editMessage(index)"
-								class="btn-mini">编辑</button>
+							<uni-icons v-if="item.role === 'user' && editingIndex !== index" @click="editMessage(index)"
+								type="compose" :style="{
+				      color: '#fff',
+					  position: 'absolute',
+					  right: '5px',
+					  top: '5px',
+					  fontSize: '16px',
+				    }" />
 
 							<div v-if="item.role === 'user' && editingIndex === index">
-								<input v-model="tempMessage" />
-								<button class="btn-mini" @click="saveMessage(index)">保存</button>
-								<button class="btn-mini" @click="cancelEdit">取消</button>
+								<input v-model="tempMessage" focus="true" />
+								<div :style="{
+					  position: 'absolute',
+					  right: '5px',
+					  top: '5px',
+				    }">
+									<button class="btn-mini" :style="{
+					  marginRight: '5px',
+				    }" @click="saveMessage(index)">保存</button>
+									<button class="btn-mini" @click="cancelEdit">取消</button>
+								</div>
 							</div>
 
 							<div v-else>
@@ -25,7 +39,11 @@
 								<text v-if="item.content !== ''" selectable="true"
 									v-html="renderMarkdown(item.content)">
 								</text>
-								<text v-else class="placeholder">思考中...</text>
+								<text v-else class="placeholder">
+									<span class="loading-dot"></span>
+									<span class="loading-dot"></span>
+									<span class="loading-dot"></span>
+								</text>
 							</div>
 						</view>
 
@@ -36,34 +54,39 @@
 		</scroll-view>
 
 		<view class="input-box">
+			<view class="toolbar">
+				<view class="tool-container" @click="clearChat">
+					<uni-tooltip content="清除记录">
+						<uni-icons type="trash" size="16" />
+					</uni-tooltip>
+				</view>
+				<view class="tool-container" @click="exportChat">
+					<uni-tooltip content="导出记录">
+						<uni-icons type="download" size="16" />
+					</uni-tooltip>
+				</view>
+				<view class="tool-container" @click="clickFileInput">
+					<uni-tooltip content="导入记录">
+						<uni-icons type="upload" size="16" />
+					</uni-tooltip>
+				</view>
+				<view class="tool-container">
+					<uni-tooltip content="开启记录后会极大的消耗猫粮">
+						<switch class="memory-switch" :checked="isMemoryMode.checked" @change="switchMemoryMode" />
+					</uni-tooltip>
+				</view>
+				<view class="tool-container">
+					<SelectModel @model-change="handleCurrentModel" />
+				</view>
+			</view>
+			<div class="input-container">
+				<textarea class="input" v-model="message" @keydown.13.exact.prevent="send(message)" maxlength="4096"
+					placeholder="回车发送" focus="true" auto-height fixed="true" />
+			</div>
 			<button v-if="chatList.some(item => item.role === 'user')" class="generate-button"
 				@click="sending ? abortResult() : regenerateLastAssistantMessage()">
 				{{sending ? '停止生成' : '重新生成结果'}}
 			</button>
-
-			<view>
-				<uni-icons type="trash" size="20" @click="clearChat" :style="{
-				      position: 'absolute',
-				      left: '5px',
-				      top: '5px',
-				    }"></uni-icons>
-				<uni-icons type="download" size="20" @click="exportChat"
-					:style="{position: 'absolute', left: '40px', top: '5px',}"></uni-icons>
-				<uni-icons type="upload" size="20" @click="clickFileInput"
-					style="position: absolute; left: 75px; top: 5px;"></uni-icons>
-				<view :style="{position: 'absolute', left: '110px', top: '0px', lineHeight: '14px'}">
-					开启记忆
-					<switch :checked="isMemoryMode.checked" @change="switchMemoryMode"
-						:style="{transform: 'scale(0.5)'}" />
-				</view>
-				<view class="uni-px-5 uni-pb-5"
-					:style="{position: 'absolute', left: '220px', top: '0px', width: '150px'}">
-					<SelectModel @model-change="handleCurrentModel" />
-				</view>
-			</view>
-			<textarea class="input" v-model="message" @keydown.enter.prevent="send(message)" maxlength="4096"
-				placeholder-style="" placeholder="请输入消息发送" />
-			<button type="primary" @click="send(message)" :loading="sending">发送</button>
 		</view>
 	</view>
 </template>
@@ -530,6 +553,7 @@
 <style>
 	.container {
 		background-color: antiquewhite;
+		overflow: hidden;
 	}
 
 	.avatar {
@@ -559,6 +583,7 @@
 
 	.msg {
 		display: inline;
+		min-width: 10%;
 		max-width: 70%;
 		border-radius: 10px;
 		padding: 20px;
@@ -581,15 +606,62 @@
 		background-color: #fff;
 	}
 
-	.input-box {
-		display: flex;
+	/deep/ .code-copy-added {
 		position: relative;
-		width: 100%;
+	}
+
+	.input-box {
 		height: 100px;
-		bottom: var(--window-bottom);
-		left: 0;
-		align-items: center;
+		position: relative;
 		background-color: #fff;
+	}
+
+	.toolbar {
+		display: flex;
+		align-items: center;
+		padding: 5px 0;
+		margin-left: 20px;
+		/* overflow: hidden; */
+	}
+
+	.tool-container {
+		/* display: flex;
+		justify-content: space-between;
+		align-items: center; */
+		padding: 0 10px;
+	}
+
+	.memory-switch {
+		transform: scale(0.4);
+	}
+
+	.input-container {
+		height: 55px;
+		/* background-color: aquamarine; */
+
+		position: relative;
+		/* Ensure that the textarea is positioned relative to this element */
+		display: flex;
+		justify-content: center;
+		/* Horizontally center children */
+		align-items: flex-end;
+		/* Vertically align children at the bottom */
+	}
+
+	.input-container .input {
+		padding: 10px;
+		border-radius: 4px;
+		border: 1px solid #ccc;
+		background-color: #f8f8f8;
+		width: 80%;
+		min-height: 20px;
+		bottom: 6px;
+		z-index: 999;
+	}
+
+	.input-container .send-button {
+		height: 40px;
+		flex-shrink: 0;
 	}
 
 	.generate-button {
@@ -597,36 +669,8 @@
 		top: -30px;
 		left: 50%;
 		transform: translateX(-50%);
-	}
-
-	.input {
-		flex: 1;
-		margin: 0 30px;
-		height: 50px;
-		font-size: 16px;
-	}
-
-	.send {
-		/* width: 80px; */
-		/* background-color: #40a9ff; */
-		/* color: #40a9ff;
-		font-size: 14px; */
-		margin-right: 10px;
-	}
-
-	.input-box button {
 		height: 30px;
+		line-height: 30px;
 		font-size: 14px;
-	}
-
-	/deep/ .code-copy-added {
-		position: relative;
-	}
-
-	.btn-mini {
-		display: inline-block;
-		line-height: 1.5;
-		font-size: 12px;
-		padding: 0 0.5em;
 	}
 </style>

@@ -1,5 +1,5 @@
 <template>
-	<uni-data-select v-model="currentSelectedModel" :localdata="modelList" @change="switchModel" :clear="false">
+	<uni-data-select style="min-width: 120px;" v-model="currentSelectedModel" :localdata="modelList" @change="switchModel" :clear="false">
 	</uni-data-select>
 </template>
 

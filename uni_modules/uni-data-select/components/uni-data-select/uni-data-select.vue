@@ -407,7 +407,7 @@
 		box-sizing: border-box;
 		/* #endif */
 		position: absolute;
-		top: calc(100% + 12px);
+		bottom: calc(100% + 12px);
 		left: 0;
 		width: 100%;
 		background-color: #FFFFFF;
@@ -473,22 +473,22 @@
 		border-style: solid;
 		border-width: 6px;
 	}
-
+	
 	.uni-popper__arrow {
-		filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.03));
-		top: -6px;
+		filter: drop-shadow(0 -2px 12px rgba(0, 0, 0, 0.03));
+		bottom: -6px;
 		left: 10%;
 		margin-right: 3px;
-		border-top-width: 0;
-		border-bottom-color: #EBEEF5;
+		border-bottom-width: 0;
+		border-top-color: #EBEEF5;
 	}
-
+	
 	.uni-popper__arrow::after {
 		content: " ";
-		top: 1px;
+		bottom: 1px;
 		margin-left: -6px;
-		border-top-width: 0;
-		border-bottom-color: #fff;
+		border-bottom-width: 0;
+		border-top-color: #fff;
 	}
 
 	.uni-select__input-text {

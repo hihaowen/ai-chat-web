@@ -1,0 +1,9 @@
+{
+	"locale.auto": "System",
+	"locale.en": "English",
+	"locale.zh-hans": "简体中文",
+	"common.language": "Language",
+	"index.title": "Caysay",
+	"index.note": "Intelligent conversation realized through AI technology, helping you solve problems more efficiently.",
+	"index.notice": "The latest addition is the Bing model, based on the GPT-4 model, supporting real-time search."
+}

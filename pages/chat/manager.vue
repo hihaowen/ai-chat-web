@@ -4,22 +4,23 @@
 			<div class="sidebar-content">
 				<button @click="createNewSession">
 					<uni-icons type="plusempty" />
-					New chat
+					{{$t('template.newChat')}}
 				</button>
 				<div v-for="session in sessions" :key="session.id" class="session-item"
 					:class="activeSession.id===session.id?'session-item-active':''">
 					<div v-if="editingSessionId === session.id" class="session-edit">
-						<input class="input" v-model="newTitle" focus="true" placeholder="Enter new title" />
-						<button class="btn-mini" @click="saveNewTitle(session.id)">保存</button>
-						<button class="btn-mini" @click="cancelEdit">取消</button>
+						<input class="input" v-model="newTitle" focus="true"
+							:placeholder="$t('template.enterNewTitle')" />
+						<button class="btn-mini" @click="saveNewTitle(session.id)">{{$t('template.save')}}</button>
+						<button class="btn-mini" @click="cancelEdit">{{$t('template.cancel')}}</button>
 					</div>
 					<div v-else @click="switchNewSession(session.id)" class="session-info">
 						<span class="session-title"
 							:class="activeSession.id===session.id?'session-title-active':''">{{ session.title }}</span>
 						<button v-if="activeSession.id === session.id" class="btn-mini"
-							@click.stop="startEdit(session.id, session.title)">编辑</button>
+							@click.stop="startEdit(session.id, session.title)">{{$t('template.edit')}}</button>
 						<button v-if="activeSession.id === session.id" class="btn-mini"
-							@click.stop="deleteOldSession(session.id)">删除</button>
+							@click.stop="deleteOldSession(session.id)">{{$t('template.delete')}}</button>
 					</div>
 				</div>
 			</div>
@@ -111,9 +112,9 @@
 			deleteOldSession(sessionId) {
 				self = this
 				uni.showModal({
-					title: '提示',
-					content: '确定要删除吗？',
-					confirmText: '确定',
+					title: this.$t('jsContent.modalTitle'),
+					content: this.$t('jsContent.modalContent'),
+					confirmText: this.$t('jsContent.modalConfirmText'),
 					success: function(res) {
 						if (res.confirm) {
 							self.deleteSession(sessionId)

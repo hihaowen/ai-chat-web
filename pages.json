@@ -1,69 +1,69 @@
 {
 	"version": "0.0.1",
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "首页"
+				"navigationBarTitleText": "%tabbar.home%"
 			}
 		},
 		{
 			"path": "pages/chat/form",
 			"style": {
-				"navigationBarTitleText": "表单对话"
+				"navigationBarTitleText": "%pages.form-chat%"
 			}
 		}, {
 			"path": "pages/index/app",
 			"style": {
-				"navigationBarTitleText": "常见应用",
+				"navigationBarTitleText": "%tabbar.app%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/index/setting",
 			"style": {
-				"navigationBarTitleText": "设置",
+				"navigationBarTitleText": "%tabbar.setting%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/sso/login",
 			"style": {
-				"navigationBarTitleText": "登录",
+				"navigationBarTitleText": "%pages.login%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/sso/logout",
 			"style": {
-				"navigationBarTitleText": "退出登录",
+				"navigationBarTitleText": "%pages.logout%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/sso/member",
 			"style": {
-				"navigationBarTitleText": "会员购买",
+				"navigationBarTitleText": "%pages.member%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/common/simpleview",
 			"style": {
-				"navigationBarTitleText": "未命名",
+				"navigationBarTitleText": "undefined",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/common/privacy",
 			"style": {
-				"navigationBarTitleText": "隐私政策",
+				"navigationBarTitleText": "%data.privacyPolicy%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/common/terms",
 			"style": {
-				"navigationBarTitleText": "使用条款",
+				"navigationBarTitleText": "%data.termsOfUse%",
 				"enablePullDownRefresh": false
 			}
 		}, {
 			"path": "pages/chat/manager",
 			"style": {
-				"navigationBarTitleText": "Chat",
+				"navigationBarTitleText": "undefined",
 				"enablePullDownRefresh": false
 			}
 		}
@@ -94,18 +94,18 @@
 				"pagePath": "pages/index/index",
 				"iconPath": "static/home.png",
 				"selectedIconPath": "static/home-active.png",
-				"text": "首页"
+				"text": "%tabbar.home%"
 			},
 			{
 				"pagePath": "pages/index/app",
 				"iconPath": "static/app.png",
 				"selectedIconPath": "static/app-active.png",
-				"text": "应用"
+				"text": "%tabbar.app%"
 			}, {
 				"pagePath": "pages/index/setting",
 				"iconPath": "static/setting.png",
 				"selectedIconPath": "static/setting-active.png",
-				"text": "设置"
+				"text": "%tabbar.setting%"
 			}
 		]
 	}

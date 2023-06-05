@@ -28,9 +28,9 @@
 					  top: '5px',
 				    }">
 									<button class="btn-mini" :style="{
-					  marginRight: '5px',
-				    }" @click="saveMessage(index)">保存</button>
-									<button class="btn-mini" @click="cancelEdit">取消</button>
+														  marginRight: '5px',
+													    }" @click="saveMessage(index)">{{$t('button.save')}}</button>
+									<button class="btn-mini" @click="cancelEdit">{{$t('button.cancel')}}</button>
 								</div>
 							</div>
 
@@ -56,22 +56,22 @@
 		<view class="input-box">
 			<view class="toolbar">
 				<view class="tool-container" @click="clearChat">
-					<uni-tooltip content="清除记录">
+					<uni-tooltip :content="$t('toolbar.clearRecord')">
 						<uni-icons type="trash" size="16" />
 					</uni-tooltip>
 				</view>
 				<view class="tool-container" @click="exportChat">
-					<uni-tooltip content="导出记录">
+					<uni-tooltip :content="$t('toolbar.exportRecord')">
 						<uni-icons type="download" size="16" />
 					</uni-tooltip>
 				</view>
 				<view class="tool-container" @click="clickFileInput">
-					<uni-tooltip content="导入记录">
+					<uni-tooltip :content="$t('toolbar.importRecord')">
 						<uni-icons type="upload" size="16" />
 					</uni-tooltip>
 				</view>
 				<view class="tool-container">
-					<uni-tooltip content="开启记录后会极大的消耗猫粮">
+					<uni-tooltip :content="$t('toolbar.memoryWarning')">
 						<switch class="memory-switch" :checked="isMemoryMode.checked" @change="switchMemoryMode" />
 					</uni-tooltip>
 				</view>
@@ -81,11 +81,11 @@
 			</view>
 			<div class="input-container">
 				<textarea class="input" v-model="message" @keydown.13.exact.prevent="send(message)" maxlength="4096"
-					placeholder="回车发送" focus="true" auto-height fixed="true" />
+					:placeholder="$t('input.enterToSend')" focus="true" auto-height fixed="true" />
 			</div>
 			<button v-if="chatList.some(item => item.role === 'user')" class="generate-button"
 				@click="sending ? abortResult() : regenerateLastAssistantMessage()">
-				{{sending ? '停止生成' : '重新生成结果'}}
+				{{sending ? $t('button.stopGenerating') : $t('button.regenerateResult')}}
 			</button>
 		</view>
 	</view>
@@ -221,11 +221,6 @@
 			},
 		},
 		methods: {
-			captureEnter(event) {
-				event.preventDefault();
-				this.enterKeyPressed = true;
-				console.log("???")
-			},
 			loadChatList() {
 				const savedChatList = localStorage.getItem('chatList-' + this.session.id);
 				if (savedChatList) {
@@ -315,7 +310,7 @@
 									self.chatList = data;
 									self.saveChat();
 								} else {
-									alert('无效的聊天记录文件');
+									alert(this.$t('alert.invalidChatRecordFile'));
 								}
 							})
 							.catch((error) => {
@@ -325,7 +320,7 @@
 				});
 			},
 			clearChat() {
-				if (window.confirm("确认清空记录?")) {
+				if (window.confirm(this.$t('confirm.clearRecord'))) {
 					this.chatList = [];
 					this.abortResult();
 					localStorage.removeItem('chatList-' + this.session.id);
@@ -351,7 +346,7 @@
 							this.chatList = data;
 							this.saveChat();
 						} else {
-							alert('无效的聊天记录文件');
+							alert(this.$t('alert.invalidChatRecordFile'));
 						}
 					};
 					reader.readAsText(file);
@@ -515,10 +510,9 @@
 						throw err;
 					}
 				}).catch((err) => {
-					let msg = `请求失败`
-
+					let msg = this.$t('jsContent.requestFailed')
 					if (err instanceof UnauthorizedError) {
-						msg = '未登录或登录失效'
+						msg = this.$t('jsContent.unauthorized')
 						setTimeout(() => {
 							uni.navigateTo({
 								url: '/pages/sso/login?redirect_url=/' + encodeURIComponent(this
@@ -526,14 +520,14 @@
 							})
 						}, 1500);
 					} else if (err instanceof UpgradeRequiredError) {
-						msg = '猫粮不足或已吃完'
+						msg = this.$t('jsContent.insufficientFood')
 						setTimeout(function() {
 							uni.navigateTo({
 								url: '/pages/sso/member'
 							})
 						}, 1500);
 					} else if (err instanceof InterruptError) {
-						msg = '发送中断'
+						msg = this.$t('jsContent.serverInterrupt')
 					} else {
 						console.log(err.name + `: ${err.message}`)
 					}

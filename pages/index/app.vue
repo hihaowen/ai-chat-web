@@ -1,6 +1,7 @@
 <template>
 	<view>
-		<uni-section title="常见应用" type="line" padding>
+		<uni-section :title="$t('template.commonApps')" type="line" padding>
+
 			<uni-grid :column="3" :highlight="true">
 				<uni-grid-item v-for="(item, index) in list" :index="index" :key="index">
 					<view class="grid-item-box" @click="jumpFormChat(item.id)">
@@ -20,7 +21,7 @@
 	export default {
 		data() {
 			return {
-				title: 'Hello',
+				title: this.$t('script.hello'),
 				list: {}, // 从 API 获取的列表数据
 			}
 		},

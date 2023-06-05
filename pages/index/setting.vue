@@ -4,15 +4,17 @@
 			<image class="uni-header-image avatar" src="/static/user.jpg" @click="bindLogin"
 				:style="{'cursor': 'pointer'}">
 			</image>
-			<text class="hello-text">点击头像登录</text>
+			<text class="hello-text">{{$t('template.clickAvatar')}}</text>
 		</view>
+
 		<view v-else class="uni-header-logo">
 			<image class="uni-header-image avatar" src="/static/user.jpg"></image>
 			<text class="hello-text">{{uerInfo.nickname}}</text>
 		</view>
+
 		<view class="uni-panel" v-if="uerInfo.grantModelList && uerInfo.grantModelList.length > 0">
 			<div class="section">
-				<h1 class="section-title">剩余猫粮</h1>
+				<h1 class="section-title">{{$t('template.remainingCatFood')}}</h1>
 				<ul class="list">
 					<li class="list-item" v-for="(item, index) in uerInfo.grantModelList" :key="index">
 						<div v-if="item.tag === 'GPT-4'" class="thumb" :style="{ backgroundColor: 'black'}">
@@ -28,15 +30,16 @@
 						<div v-else class="thumb"></div>
 						<div class="item-content">
 							<h2 class="item-title">{{ item.tag }}</h2>
-							<p class="item-note">{{ item.balance }} 粒</p>
+							<p class="item-note">{{ item.balance }} {{$t('template.grains')}}</p>
 						</div>
 					</li>
 				</ul>
 			</div>
 		</view>
+
 		<view v-if="hasLogin" class="uni-panel">
 			<navigator url="/pages/sso/member" hover-class="navigator-hover">
-				<button type="primary">购买猫粮</button>
+				<button type="primary">{{$t('template.buyCatFood')}}</button>
 			</navigator>
 		</view>
 
@@ -49,28 +52,18 @@
 			</div>
 		</view>
 
-		<view :class="{'pc-hide': hideList.indexOf(item.url) !== -1  && hasLeftWin}" class="uni-panel"
-			v-for="(item, index) in list" :key="item.id">
-			<view :class="{'left-win-active': leftWinActive === item.url  && hasLeftWin, 'uni-panel-h-on': item.open}"
-				class="uni-panel-h" @click="triggerCollapse(index, item.id)">
-				<text class="uni-panel-text">{{item.name}}</text>
-				<text class="uni-panel-icon uni-icon"
-					:class="item.open  ? 'uni-panel-icon-on' : ''">{{item.pages ? '&#xe581;' : '&#xe470;'}}</text>
-			</view>
-			<view class="uni-panel-c" v-if="item.open">
-				<view
-					:class="{'left-win-active': leftWinActive === item2.url  && hasLeftWin, 'pc-hide': hideList.indexOf(item2.url) !== -1  && hasLeftWin}"
-					class="uni-navigate-item" v-for="(item2,key) in item.pages" :key="key" @click="goDetailPage(item2)">
-					<text class="uni-navigate-text">{{item2.name ? item2.name : item2}}</text>
-					<text class="uni-navigate-icon uni-icon">&#xe470;</text>
-				</view>
-			</view>
+		<view class="uni-panel">
+			<p><uni-link href="/pages/common/privacy" :text="$t('data.privacyPolicy')"></uni-link></p>
+			<p><uni-link href="/pages/common/terms" :text="$t('data.termsOfUse')"></uni-link></p>
+			<p><uni-link href="https://tally.so/r/mRdPaK" :text="$t('data.feedback')"></uni-link></p>
 		</view>
+
 		<view class="page">
-			<button v-if="hasLogin" type="warn" @click="bindLogin">退出登录</button>
+			<button v-if="hasLogin" type="warn" @click="bindLogin">{{$t('template.logout')}}</button>
 		</view>
 	</view>
 </template>
+
 <script>
 	import {
 		chatApi
@@ -124,25 +117,7 @@
 					'nav-city-dropdown'
 				],
 				grantModelList: [],
-				list: [{
-						id: 'navbar',
-						name: '隐私条款',
-						open: false,
-						pages: [{
-								name: '隐私协议',
-								url: '/pages/common/privacy'
-							},
-							{
-								name: '使用条款',
-								url: '/pages/common/terms'
-							}
-						]
-					},
-					{
-						name: '问题反馈',
-						url: 'https://tally.so/r/mRdPaK',
-					},
-				]
+				list: [],
 			}
 		},
 		onShow() {
@@ -159,23 +134,7 @@
 			})
 		},
 		watch: {
-			$route: {
-				immediate: true,
-				handler(newRoute) {
-					if (newRoute.matched.length) {
-						let path = newRoute.path.split('/')[3]
-						for (const item of this.list) {
-							if (Array.isArray(item.pages)) {
-								for (const page of item.pages) {
-									if (page === path || page.url && page.url === path) {
-										item.open = true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+
 		},
 		methods: {
 			...mapMutations(['login']),
@@ -210,35 +169,6 @@
 					})
 				}
 			},
-			triggerCollapse(e, id) {
-				if (!this.list[e].pages) {
-					this.goDetailPage(this.list[e].url);
-					return;
-				}
-				for (var i = 0; i < this.list.length; ++i) {
-					if (e === i) {
-						this.list[i].open = !this.list[i].open;
-					} else {
-						this.list[i].open = false;
-					}
-				}
-			},
-			goDetailPage(e) {
-				let path = e.url ? e.url : e;
-				let url = path;
-				if (this.hasLeftWin) {
-					uni.reLaunch({
-						url: url
-					})
-				} else if (url.startsWith('http')) {
-					window.open(url)
-				} else {
-					uni.navigateTo({
-						url: url
-					})
-				}
-				return false;
-			}
 		}
 	}
 </script>

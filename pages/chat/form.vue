@@ -5,7 +5,7 @@
 		</uni-card>
 
 		<form @submit.prevent="submitForm">
-			<uni-section title="LLM模型" type="line">
+			<uni-section :title="$t('template.modelTitle')" type="line">
 				<view class="uni-px-5 uni-pb-5">
 					<SelectModel @model-change="handleCurrentModel" />
 				</view>
@@ -24,7 +24,8 @@
 
 					<view v-if="field.type === 'select'" :label="field.name" :required="field.required">
 						<uni-data-select v-model="formData[field.id]" :localdata="field.optional_value"
-							popup-title="请选择" @change="onPickerChange(field.id, $event)" :clear="false">
+							popup-title="$t('template.selectPlaceholder')" @change="onPickerChange(field.id, $event)"
+							:clear="false">
 						</uni-data-select>
 					</view>
 
@@ -36,12 +37,12 @@
 			</uni-section>
 
 			<view class="uni-px-5 uni-pb-5">
-				<button type="primary" form-type="submit" :loading="sending">点击生成</button>
+				<button type="primary" form-type="submit" :loading="sending">{{$t('template.clickToGenerate')}}</button>
 			</view>
 		</form>
 
 		<!-- 生成的答案部分，添加点击复制功能 -->
-		<uni-section title="生成的答案" type="line">
+		<uni-section :title="$t('template.generatedAnswer')" type="line">
 			<view v-if="result" id="resultView" class="uni-px-5 uni-pb-5">
 				<text selectable="true" v-html="result"></text>
 			</view>
@@ -283,9 +284,9 @@
 						throw err;
 					}
 				}).catch((err) => {
-					let msg = `请求失败`
+					let msg = this.$t('jsContent.requestFailed')
 					if (err instanceof UnauthorizedError) {
-						msg = '未登录或登录失效'
+						msg = this.$t('jsContent.unauthorized')
 						uni.showToast({
 							title: msg,
 							icon: "none",
@@ -304,7 +305,7 @@
 							},
 						});
 					} else if (err instanceof UpgradeRequiredError) {
-						msg = '猫粮不足或已吃完'
+						msg = this.$t('jsContent.insufficientFood')
 						uni.showToast({
 							title: msg,
 							icon: "none",
@@ -317,7 +318,7 @@
 							},
 						});
 					} else if (err instanceof InterruptError) {
-						msg = '服务端发送中断'
+						msg = this.$t('jsContent.serverInterrupt')
 						uni.showToast({
 							title: msg,
 							icon: "none",
@@ -348,7 +349,7 @@
 					data: this.result,
 					success() {
 						uni.showToast({
-							title: "答案已复制",
+							title: this.$t('jsContent.answerCopied'),
 							icon: "success",
 						});
 					},

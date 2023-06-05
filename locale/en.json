@@ -2,6 +2,7 @@
 	"locale.auto": "System",
 	"locale.en": "English",
 	"locale.zh-hans": "Simplified Chinese",
+	"locale.zh-hant": "Traditional Chinese",
 	"common.language": "Language",
 	"index.title": "Caysay",
 	"index.note": "Intelligent conversation realized through AI technology, helping you solve problems more efficiently.",

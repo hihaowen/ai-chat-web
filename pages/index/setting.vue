@@ -97,6 +97,10 @@
 						text: this.$t('locale.zh-hans'),
 						value: 'zh-Hans'
 					},
+					{
+						text: this.$t('locale.zh-hant'),
+						value: 'zh-Hant'
+					},
 				]
 			},
 		},

@@ -2,6 +2,7 @@
 	"locale.auto": "系统",
 	"locale.en": "英语",
 	"locale.zh-hans": "简体中文",
+	"locale.zh-hant": "繁体中文",
 	"common.language": "语言",
 	"index.title": "猫说",
 	"index.note": "通过 AI 技术实现的智能对话，帮助您更快捷地解决问题。",

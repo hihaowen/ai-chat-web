@@ -39,6 +39,16 @@
 				<button type="primary">购买猫粮</button>
 			</navigator>
 		</view>
+
+		<view class="uni-panel">
+			<div class="section">
+				<h1 class="section-title">{{$t('common.language')}}</h1>
+				<uni-data-select style="min-width: 120px;" v-model="applicationLocale" :localdata="locales"
+					@change="onLocaleChange" :clear="false">
+				</uni-data-select>
+			</div>
+		</view>
+
 		<view :class="{'pc-hide': hideList.indexOf(item.url) !== -1  && hasLeftWin}" class="uni-panel"
 			v-for="(item, index) in list" :key="item.id">
 			<view :class="{'left-win-active': leftWinActive === item.url  && hasLeftWin, 'uni-panel-h-on': item.open}"
@@ -75,10 +85,27 @@
 		getAccessToken,
 		userInfoHandler
 	} from '../../common/sso.js'
+	import {
+		nextTick
+	} from "vue";
 
 	export default {
 		computed: {
 			...mapState(['hasLogin', 'uerInfo']),
+			locales() {
+				return [{
+						text: this.$t('locale.auto'),
+						value: 'auto'
+					}, {
+						text: this.$t('locale.en'),
+						value: 'en'
+					},
+					{
+						text: this.$t('locale.zh-hans'),
+						value: 'zh-Hans'
+					},
+				]
+			},
 		},
 		props: {
 			hasLeftWin: {
@@ -90,6 +117,7 @@
 		},
 		data() {
 			return {
+				applicationLocale: '',
 				refresh: true,
 				hideList: [
 					'ucharts',
@@ -125,7 +153,10 @@
 
 		},
 		onLoad() {
-
+			this.applicationLocale = uni.getLocale();
+			uni.onLocaleChange((e) => {
+				this.applicationLocale = e.locale;
+			})
 		},
 		watch: {
 			$route: {
@@ -148,6 +179,11 @@
 		},
 		methods: {
 			...mapMutations(['login']),
+			onLocaleChange(l) {
+				console.log("选择语言:", l)
+				uni.setLocale(l);
+				this.$i18n.locale = l;
+			},
 			reload() {
 				// 更新登录用户信息
 				userInfoHandler(window.location.href,

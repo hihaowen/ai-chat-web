@@ -1,5 +1,5 @@
 <template>
-	<uni-data-select style="min-width: 120px;" v-model="currentSelectedModel" :localdata="modelList" @change="switchModel" :clear="false">
+	<uni-data-select style="min-width: 160px;" v-model="currentSelectedModel" :localdata="modelList" @change="switchModel" :clear="false">
 	</uni-data-select>
 </template>
 
@@ -51,10 +51,6 @@
 				});
 
 				console.log("全部模型:", this.modelList)
-
-				if (typeof this.currentSelectedModel === 'string') {
-					console.log("当前选择的model:", this.currentSelectedModel)
-				}
 			},
 		},
 	};

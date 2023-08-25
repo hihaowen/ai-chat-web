@@ -9,15 +9,21 @@
 				:extra="$t('index.aichat-btn')" thumbnail="/static/robot-icon.png" @click="startChat">
 				<text class="uni-body">{{$t('index.aichat-desc')}}</text>
 			</uni-card>
+			
+			<uni-card title="18🈲️️生图器" sub-title="未满18岁禁止入内"
+				extra="去试试 >" thumbnail="/static/robot-icon.png" @click="drawImage">
+				<text class="uni-body">⚠️请购买猫粮GPT-3.5进行充值</text>
+			</uni-card>
 
 			<uni-card :title="$t('index.form-title')" :sub-title="$t('index.form-sub-title')"
 				:extra="$t('index.form-btn')" thumbnail="/static/app-icon.png" @click="formChat">
+				<text class="uni-body">{{$t('index.form-desc')}}</text>
 			</uni-card>
 
-			<uni-card :title="$t('index.pdf-title')" :sub-title="$t('index.pdf-sub-title')" :extra="$t('index.pdf-btn')"
+			<!-- <uni-card :title="$t('index.pdf-title')" :sub-title="$t('index.pdf-sub-title')" :extra="$t('index.pdf-btn')"
 				thumbnail="/static/pdf-icon.png" @click="pdfChat">
 				<text class="uni-body">{{$t('index.aichat-desc')}}</text>
-			</uni-card>
+			</uni-card> -->
 		</view>
 	</view>
 </template>
@@ -39,8 +45,13 @@
 				})
 			},
 			formChat(e) {
-				uni.switchTab({
+				uni.navigateTo({
 					url: `/pages/index/app`
+				})
+			},
+			drawImage(e) {
+				uni.navigateTo({
+					url: '/pages/chat/form?form=draw-image'
 				})
 			},
 			pdfChat(e) {

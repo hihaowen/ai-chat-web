@@ -156,6 +156,8 @@
 	class UnauthorizedError extends Error {}
 	class UpgradeRequiredError extends Error {}
 	class InterruptError extends Error {}
+	class RateLimitError extends Error {}
+	class TimeoutError extends Error {}
 
 	export default {
 		props: ['session', 'currentPageRoute'],
@@ -175,7 +177,7 @@
 				isMemoryMode: {
 					checked: true
 				},
-				currentSelectedModel: "gpt-3.5-turbo",
+				currentSelectedModel: "gpt-3.5-turbo-16k",
 				enterKeyPressed: false,
 			}
 		},
@@ -474,6 +476,12 @@
 						// so it gets handled by the onerror callback below:
 						if (msg.event === 'InterruptError') {
 							throw new InterruptError(msg.data);
+						} else if (msg.event === 'FatalError') {
+							throw new FatalError(msg.data);
+						} else if (msg.event === 'RateLimitError') {
+							throw new RateLimitError(msg.data);
+						} else if (msg.event === 'TimeoutError') {
+							throw new RateLimitError(msg.data);
 						}
 
 						const data = JSON.parse(msg.data);
@@ -494,7 +502,7 @@
 							return
 						}
 
-						if (this.currentSelectedModel === "bing") {
+						if (this.currentSelectedModel === "bing" || msg.event === 'functionCall') {
 							this.chatList[robotIndex].content = data.data;
 						} else {
 							this.chatList[robotIndex].content += data.data;
@@ -513,21 +521,27 @@
 					let msg = this.$t('jsContent.requestFailed')
 					if (err instanceof UnauthorizedError) {
 						msg = this.$t('jsContent.unauthorized')
-						setTimeout(() => {
+						// setTimeout(() => {
 							uni.navigateTo({
 								url: '/pages/sso/login?redirect_url=/' + encodeURIComponent(this
 									.currentPageRoute),
 							})
-						}, 1500);
+						// }, 1500);
 					} else if (err instanceof UpgradeRequiredError) {
 						msg = this.$t('jsContent.insufficientFood')
-						setTimeout(function() {
+						// setTimeout(function() {
 							uni.navigateTo({
 								url: '/pages/sso/member'
 							})
-						}, 1500);
+						// }, 1500);
 					} else if (err instanceof InterruptError) {
 						msg = this.$t('jsContent.serverInterrupt')
+					} else if (err instanceof FatalError) {
+						msg = this.$t('jsContent.serverFatal')
+					} else if (err instanceof RateLimitError) {
+						msg = this.$t('jsContent.rateLimitError')
+					} else if (err instanceof TimeoutError) {
+						msg = this.$t('jsContent.timeoutError')
 					} else {
 						console.log(err.name + `: ${err.message}`)
 					}

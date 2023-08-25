@@ -116,6 +116,6 @@
 		font-size: 38rpx;
 		color: #808080;
 	}
-
+	
 	/* #endif*/
 </style>

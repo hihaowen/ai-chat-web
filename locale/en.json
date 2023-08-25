@@ -54,6 +54,9 @@
 	"jsContent.unauthorized": "Not logged in or login expired",
 	"jsContent.insufficientFood": "Insufficient or exhausted cat food",
 	"jsContent.serverInterrupt": "Server interruption",
+	"jsContent.serverFatal": "Server error, please try again",
+	"jsContent.rateLimitError": "The current server pressure is too high, please try again later",
+	"jsContent.timeoutError": "Timeout error, please try again",
 	"button.save": "Save",
 	"button.cancel": "Cancel",
 	"toolbar.clearRecord": "Clear Record",
@@ -69,8 +72,9 @@
 	"tabbar.home": "Home",
 	"tabbar.app": "Application",
 	"tabbar.setting": "Setting",
-	"pages.login": "Login",
-	"pages.logout": "Logout",
-	"pages.member": "Member Purchase",
-	"pages.form-chat": "Form Dialogue"
+	"pages.login": "Login(blank please refresh)",
+	"pages.logout": "Logout(blank please refresh)",
+	"pages.member": "Cat food purchase(blank please refresh)",
+	"pages.form-chat": "Form Dialogue",
+	"index.form-desc": ""
 }

@@ -1,7 +1,8 @@
 <template>
 	<view>
-		<uni-section :title="$t('template.commonApps')" type="line" padding>
+		<uni-notice-bar show-get-more show-icon scrollable text="以下充值請購買“智慧猫粮”,手機端推薦用支付寶支付" @getmore="buyMember" />
 
+		<uni-section :title="$t('template.commonApps')" type="line" padding>
 			<uni-grid :column="3" :highlight="true">
 				<uni-grid-item v-for="(item, index) in list" :index="index" :key="index">
 					<view class="grid-item-box" @click="jumpFormChat(item.id)">
@@ -29,6 +30,11 @@
 			this.fetchForm();
 		},
 		methods: {
+			buyMember(e) {
+				uni.navigateTo({
+					url: '/pages/sso/member'
+				})
+			},
 			async fetchForm() {
 				const res = await uni.request({
 					url: chatApi + `/chat/list`,

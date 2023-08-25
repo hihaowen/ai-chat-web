@@ -54,6 +54,9 @@
 	"jsContent.unauthorized": "未登錄或登錄失效",
 	"jsContent.insufficientFood": "貓糧不足或已吃完",
 	"jsContent.serverInterrupt": "服務端發送中斷",
+	"jsContent.serverFatal": "服務器錯誤,請重試",
+	"jsContent.rateLimitError": "當前服務器壓力過大,請稍後重試",
+	"jsContent.timeoutError": "超時錯誤,請重試",
 	"button.save": "保存",
 	"button.cancel": "取消",
 	"toolbar.clearRecord": "清除記錄",
@@ -69,8 +72,9 @@
 	"tabbar.home": "首頁",
 	"tabbar.app": "應用",
 	"tabbar.setting": "設置",
-	"pages.login": "登錄",
-	"pages.logout": "退出登錄",
-	"pages.member": "會員購買",
-	"pages.form-chat": "表單對話"
+	"pages.login": "登錄(空白請刷新)",
+	"pages.logout": "退出登錄(空白請刷新)",
+	"pages.member": "貓糧購買(空白請刷新)",
+	"pages.form-chat": "表單對話",
+	"index.form-desc": ""
 }

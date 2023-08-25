@@ -96,12 +96,13 @@
 				"selectedIconPath": "static/home-active.png",
 				"text": "%tabbar.home%"
 			},
+			// {
+			// 	"pagePath": "pages/index/app",
+			// 	"iconPath": "static/app.png",
+			// 	"selectedIconPath": "static/app-active.png",
+			// 	"text": "%tabbar.app%"
+			// }, 
 			{
-				"pagePath": "pages/index/app",
-				"iconPath": "static/app.png",
-				"selectedIconPath": "static/app-active.png",
-				"text": "%tabbar.app%"
-			}, {
 				"pagePath": "pages/index/setting",
 				"iconPath": "static/setting.png",
 				"selectedIconPath": "static/setting-active.png",

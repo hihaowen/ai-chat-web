@@ -54,6 +54,9 @@
 	"jsContent.unauthorized": "未登录或登录失效",
 	"jsContent.insufficientFood": "猫粮不足或已吃完",
 	"jsContent.serverInterrupt": "服务端发送中断",
+	"jsContent.serverFatal": "服务器错误,请重试",
+	"jsContent.rateLimitError": "当前服务器压力过大,请稍后重试",
+	"jsContent.timeoutError": "超时错误,请重试",
 	"button.save": "保存",
 	"button.cancel": "取消",
 	"toolbar.clearRecord": "清除记录",
@@ -69,8 +72,9 @@
 	"tabbar.home": "首页",
 	"tabbar.app": "应用",
 	"tabbar.setting": "设置",
-	"pages.login": "登录",
-	"pages.logout": "退出登录",
-	"pages.member": "会员购买",
-	"pages.form-chat": "表单对话"
+	"pages.login": "登录(空白请刷新)",
+	"pages.logout": "退出登录(空白请刷新)",
+	"pages.member": "猫粮购买(空白请刷新)",
+	"pages.form-chat": "表单对话",
+	"index.form-desc": ""
 }

@@ -4,13 +4,13 @@
 			<text class="uni-h6">{{ form.description }}</text>
 		</uni-card>
 
-		<form @submit.prevent="submitForm">
-			<uni-section :title="$t('template.modelTitle')" type="line">
-				<view class="uni-px-5 uni-pb-5">
-					<SelectModel @model-change="handleCurrentModel" />
-				</view>
-			</uni-section>
+		<!-- <uni-section :title="$t('template.modelTitle')" type="line">
+			<view class="uni-px-5 uni-pb-5">
+				<SelectModel @model-change="handleCurrentModel" />
+			</view>
+		</uni-section> -->
 
+		<form @submit.prevent="submitForm">
 			<uni-section v-for="(field, index) in form.fields" :key="index" :title="field.name" type="line">
 				<view class="uni-px-5 uni-pb-5">
 					<view v-if="field.type === 'input'" :label="field.name" :required="field.required">
@@ -35,22 +35,52 @@
 					</view>
 				</view>
 			</uni-section>
-
+			
 			<view class="uni-px-5 uni-pb-5">
 				<button type="primary" form-type="submit" :loading="sending">{{$t('template.clickToGenerate')}}</button>
 			</view>
 		</form>
 
-		<!-- 生成的答案部分，添加点击复制功能 -->
-		<uni-section :title="$t('template.generatedAnswer')" type="line">
-			<view v-if="result" id="resultView" class="uni-px-5 uni-pb-5">
-				<text selectable="true" v-html="result"></text>
+		<uni-section v-if="result" :title="$t('template.generatedAnswer')" type="line">
+			<view v-if="formId === 'draw-image'" class="uni-px-5 uni-pb-5">
+				<button type="primary" plain="true"
+					@click="openBrowser('https://t.me/+sIDQPSkgOYljNTg1')">可以在Telegram上关注生图进度</button>
+			</view>
+			
+			<view id="resultView" class="uni-px-5 uni-pb-5">
+				<!-- <text selectable="true" v-html="result"></text> -->
+				<text selectable="true" v-html="renderMarkdown(result)"></text>
 			</view>
 		</uni-section>
 	</view>
 </template>
 
 <script>
+	import hljs from 'highlight.js';
+	import 'highlight.js/styles/atom-one-dark.css'
+
+	import {
+		marked
+	} from 'marked';
+
+	marked.setOptions({
+		silent: true,
+		xhtml: true,
+		breaks: true,
+		gfm: true,
+	});
+	const renderer = {
+		code(code, lang) {
+			let language = 'plaintext';
+			// 强制设置类型,解决卡顿问题
+			let highlightedCode = hljs.highlight('javascript', code).value;
+			return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${highlightedCode}</code></pre>`;
+		},
+	};
+	marked.use({
+		renderer
+	});
+
 	import {
 		chatApi
 	} from '../../package.json'
@@ -75,6 +105,8 @@
 	class UnauthorizedError extends Error {}
 	class UpgradeRequiredError extends Error {}
 	class InterruptError extends Error {}
+	class RateLimitError extends Error {}
+	class TimeoutError extends Error {}
 
 	export default {
 		components: {
@@ -82,6 +114,7 @@
 		},
 		data() {
 			return {
+				formId: "",
 				form: {}, // 从 API 获取的表单数据
 				formData: {}, // 用于存储表单输入值的对象
 				result: '', // 用于存储生成的答案
@@ -89,7 +122,7 @@
 				ctrl: new AbortController(),
 				windowHeight: 0, // 窗口高度
 				userScrollTop: 0, // 用户滑动高度
-				currentSelectedModel: "gpt-3.5-turbo",
+				currentSelectedModel: "gpt-3.5-turbo-16k",
 				currentPageInfo: {},
 			};
 		},
@@ -98,6 +131,8 @@
 				route: this.$mp.page.route,
 				params: this.$root.$mp.query
 			};
+
+			this.formId = options.form;
 
 			this.fetchForm(options.form);
 
@@ -122,6 +157,14 @@
 			}
 		},
 		methods: {
+			openBrowser(url) {
+				// plus.runtime.openURL(url)
+				window.location.href = url;
+			},
+			renderMarkdown(text) {
+				let res = text ? marked(text) : ''
+				return res.replace(/<img/g, '<img style="max-width:100%;height:auto" ')
+			},
 			handleCurrentModel(newModel) {
 				if (newModel) {
 					this.currentSelectedModel = newModel
@@ -179,9 +222,10 @@
 					}
 
 					field.optional_value = field.optional_value.map(function(option) {
+						let text = typeof option.text === 'undefined' ? option.value : option.text
 						return {
 							value: option.value,
-							text: option.value
+							text: text
 						}
 					});
 				});
@@ -237,6 +281,12 @@
 						// so it gets handled by the onerror callback below:
 						if (msg.event === 'InterruptError') {
 							throw new InterruptError(msg.data);
+						} else if (msg.event === 'FatalError') {
+							throw new FatalError(msg.data);
+						} else if (msg.event === 'RateLimitError') {
+							throw new RateLimitError(msg.data);
+						} else if (msg.event === 'TimeoutError') {
+							throw new RateLimitError(msg.data);
 						}
 
 						const data = JSON.parse(msg.data);
@@ -257,7 +307,7 @@
 							return
 						}
 
-						if (this.currentSelectedModel === "bing") {
+						if (this.currentSelectedModel === "bing" || msg.event === 'functionCall') {
 							this.result = data.data;
 						} else {
 							this.result += data.data;
@@ -301,7 +351,7 @@
 									uni.navigateTo({
 										url: url,
 									})
-								}, 1500);
+								}, 1000);
 							},
 						});
 					} else if (err instanceof UpgradeRequiredError) {
@@ -314,22 +364,21 @@
 									uni.navigateTo({
 										url: '/pages/sso/member'
 									})
-								}, 1500);
+								}, 1000);
 							},
 						});
 					} else if (err instanceof InterruptError) {
 						msg = this.$t('jsContent.serverInterrupt')
-						uni.showToast({
-							title: msg,
-							icon: "none",
-						});
+					} else if (err instanceof FatalError) {
+						msg = this.$t('jsContent.serverFatal')
+					} else if (err instanceof RateLimitError) {
+						msg = this.$t('jsContent.rateLimitError')
+					} else if (err instanceof TimeoutError) {
+						msg = this.$t('jsContent.timeoutError')
 					} else {
 						console.log(err.name + `: ${err.message}`)
-						uni.showToast({
-							title: msg,
-							icon: "none",
-						});
 					}
+					this.result = `[${msg}]`
 				}).finally(() => {
 					this.sending = false;
 					console.log('全部完成.');

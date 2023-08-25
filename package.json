@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
-  "chatApi": "http://192.168.0.103:8080",
+  "chatApi-local": "http://192.168.0.101:8080",
+  "chatApi": "https://d1xscag2wiln1j.cloudfront.net",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
